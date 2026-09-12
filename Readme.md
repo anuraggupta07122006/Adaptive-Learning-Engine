@@ -1,317 +1,230 @@
-# PrepOS — Smart Exam Preparation Platform
+# PrepOS — AI-Powered Personalized Learning Intelligence System (Adaptive Education Engine)
 
-**PrepOS** is an intelligent academic preparation platform designed to convert raw course syllabi, past year question papers (PYQs), and study notes into structured, interactive study roadmaps, real-time doubt explanations, and adaptive mock assessments.
+[![Node.js](https://img.shields.io/badge/Node.js-v20+-68a063?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Express 5](https://img.shields.io/badge/Express-v5.2.1-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![Socket.IO](https://img.shields.io/badge/Socket.IO-v4.8-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![MongoDB Atlas](https://img.shields.io/badge/MongoDB-Atlas-47a248?logo=mongodb&logoColor=white)](https://www.mongodb.com/atlas)
+[![Groq Llama 3.3](https://img.shields.io/badge/Groq-Llama%203.3%2070B-f55036?logo=meta&logoColor=white)](https://groq.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-- **Developer:** Suryansh Khare
-- **Backend Runtime:** Node.js (Express 5 + Socket.IO)
-- **Live on:** https://prep-os-live.onrender.com
-- **Deployed and Shipped with 24 x 7 running capability**
+> **PrepOS** is an intelligent, multi-model adaptive education engine built to diagnose conceptual knowledge gaps, trace learning sequences, model concept dependencies, and dynamically generate personalized study roadmaps and assessments for Indian engineering exams (JEE, GATE, University Finals, Placements).
 
-## System Architecture
+- **Author:** [Anurag Gupta](https://github.com/anuraggupta07122006)
+- **Live Demo / Cloud Service:** [https://prep-os-live.onrender.com](https://prep-os-live.onrender.com)
+- **Architecture:** Cognitive Modeling + Deep Knowledge Tracing (DKT) + Graph AI + GenAI + Socket.IO Streaming
 
-The following diagram illustrates the end-to-end data flow between the single-page frontend client, the Node.js/Express API layer, MongoDB storage, Cloudinary file pipeline, and the Groq LLM inference service.
+---
+
+## 🧠 The Core Problem Addressed
+
+Indian students preparing for high-stakes examinations frequently:
+- **Rely on rote memorization** rather than deep conceptual understanding.
+- **Fail to identify foundational knowledge gaps** (e.g., struggling with Banker's Algorithm because prerequisite Semaphores/Mutexes are unmastered).
+- **Study blindly** through static question banks without adaptive difficulty scaling.
+
+Most EdTech platforms are merely static content repositories. **PrepOS** is a cognitive intelligence engine that models student learning states mathematically and adapts continuously.
+
+---
+
+## 🚀 Key Learning Intelligence Capabilities
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│               PrepOS Learning Intelligence Pipeline                    │
+├───────────────────┬───────────────────┬────────────────────────────────┤
+│ 1. Bayesian & DKT │ 2. Knowledge      │ 3. Adaptive IRT                │
+│    Knowledge      │    Graph          │    Assessments                 │
+│    Tracing        │    Prerequisites  │    & Diagnostics               │
+├───────────────────┼───────────────────┼────────────────────────────────┤
+│ 4. Milestone Tree │ 5. WebSocket      │ 6. Multi-File                  │
+│    Roadmap        │    Real-Time AI   │    Ingestion                   │
+│    Flowchart      │    Token Stream   │    (PDF/PYQ/Notes)             │
+└───────────────────┴───────────────────┴────────────────────────────────┘
+```
+
+1. **Concept Mastery Score (BKT / DKT Cognitive Modeling)**
+   - Computes Bayesian Knowledge Tracing posterior probabilities $P(L_t \mid \text{observation})$ across concept clusters.
+   - Models slip $P(S)$, guess $P(G)$, and transition $P(T)$ probabilities dynamically upon each question attempt.
+2. **Interactive Prerequisite Knowledge Graph**
+   - Canvas-based, force-directed graph modeling foundational and advanced concepts.
+   - Dynamic mastery tier colors: 🟢 Mastered (&gt;75%), 🟡 Learning (45–75%), and 🔴 Critical Prerequisite Gap (&lt;45%).
+   - Glowing halo alert badges for prerequisite breaches with an interactive node inspector drawer.
+3. **Adaptive IRT Assessment Engine**
+   - Item Response Theory (IRT) difficulty scaling (`easy`, `medium`, `hard`).
+   - Dynamic feedback loop updating the student's cognitive state in real time.
+4. **Interactive Milestone Study Roadmap**
+   - Milestone flowchart tree with day-by-day task breakdown, time estimations, and local persistence.
+5. **Real-Time Streaming AI Study Room**
+   - Authenticated WebSocket streaming via Socket.IO yielding token-by-token Groq Llama 3.3 responses with syntax highlighting and markdown parsing.
+6. **Academic Doubt Solver**
+   - Structured mathematical and algorithm edge-case derivations.
+
+---
+
+## 📐 System Architecture
 
 ```mermaid
-%%{init: { 'theme': 'base', 'themeVariables': { 'fontSize': '16px', 'fontFamily': 'Arial, sans-serif' } } }%%
+%%{init: { 'theme': 'base', 'themeVariables': { 'fontSize': '15px', 'fontFamily': 'Inter, sans-serif' } } }%%
 graph TD
-    subgraph Client ["Client Layer — Browser"]
-        UI["Single Page Web App<br/>(HTML5 / CSS / JS)"]
-        LocalStorage["Browser Storage<br/>(localStorage / sessionStorage)"]
-        SocketClient["Socket.IO Client<br/>(Real-Time Gateway)"]
+    subgraph Client ["Client Layer — Modern SPA (Browser)"]
+        UI["Single Page Web App<br/>(Modern Glassmorphic Dark UI)"]
+        KGraph["Knowledge Graph Canvas<br/>(Force-Directed Physics)"]
+        Cognitive["Cognitive Model Engine<br/>(BKT / DKT / Predictions)"]
+        Adaptive["Adaptive IRT Quiz Engine<br/>(Difficulty Scaling)"]
+        SocketClient["Socket.IO Client<br/>(Token Streaming)"]
+        LocalStorage["Browser LocalStorage<br/>(Task States & Cognitive Trajectory)"]
     end
 
-    subgraph API ["Server & Processing Layer"]
-        Server["Express HTTP Server"]
+    subgraph API ["Backend API & Gateway Layer (Node.js / Express 5)"]
+        Server["Express 5 HTTP Server"]
         SocketServer["Socket.IO Real-Time Gateway"]
         AuthMW["JWT Auth Middleware & Guest Handler"]
-        Multer["Multer File Upload Middleware"]
-        PDFParser["PDF & Text Extractor"]
+        Multer["Multer Multi-File Upload Middleware"]
+        PDFParser["PDF & Text Extractor (pdf-parse)"]
     end
 
-    subgraph Data ["Database & Media Storage"]
-        MongoDB["MongoDB Atlas<br/>(Database)"]
-        Cloudinary["Cloudinary Storage<br/>(Media Files)"]
+    subgraph Data ["Data & Media Storage"]
+        MongoDB["MongoDB Atlas<br/>(Users, Exams, MockTests, Chats)"]
+        Cloudinary["Cloudinary Storage<br/>(Syllabus & PYQ Documents)"]
     end
 
-    subgraph AI ["AI Services"]
+    subgraph AI ["Multi-Model AI Services"]
         Groq["Groq SDK<br/>(Llama 3.3 70B Engine)"]
     end
 
-    UI -->|"HTTP REST Requests"| Server
+    UI -->|"REST HTTP Requests"| Server
     UI -->|"WebSocket Events"| SocketServer
-    UI -->|"Persists Checkbox Progress"| LocalStorage
+    UI --> LocalStorage
+    UI --> KGraph
+    UI --> Cognitive
+    UI --> Adaptive
+    SocketClient --> SocketServer
+
+    Adaptive -->|Attempt Observations| Cognitive
+    Cognitive -->|Updated Masteries| KGraph
 
     Server --> AuthMW
     Server --> Multer
     Multer --> Cloudinary
     Multer --> PDFParser
 
-    Server -->|"Read and Write Documents"| MongoDB
-    SocketServer -->|"Fetch History and Save Messages"| MongoDB
+    Server -->|"CRUD Operations"| MongoDB
+    SocketServer -->|"Persist Chat History"| MongoDB
 
-    PDFParser -->|"Parsed Syllabus and Notes Text"| Server
-    Server -->|"Strategy, Doubt, and Mock Prompts"| Groq
-    SocketServer -->|"Token Streaming Response"| Groq
-
-    style UI fill:#e0e7ff,stroke:#4f46e5,stroke-width:2px,font-size:16px,font-weight:bold;
-    style LocalStorage fill:#f1f5f9,stroke:#64748b,stroke-width:2px,font-size:15px;
-    style SocketClient fill:#e0e7ff,stroke:#4f46e5,stroke-width:2px,font-size:15px;
-    style Server fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,font-size:16px,font-weight:bold;
-    style SocketServer fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,font-size:15px;
-    style AuthMW fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,font-size:15px;
-    style Multer fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,font-size:15px;
-    style PDFParser fill:#f0fdf4,stroke:#16a34a,stroke-width:2px,font-size:15px;
-    style MongoDB fill:#fff7ed,stroke:#ea580c,stroke-width:2px,font-size:16px,font-weight:bold;
-    style Cloudinary fill:#fff7ed,stroke:#ea580c,stroke-width:2px,font-size:15px;
-    style Groq fill:#faf5ff,stroke:#9333ea,stroke-width:2px,font-size:16px,font-weight:bold;
+    PDFParser -->|"Parsed Text"| Server
+    Server -->|"Study Strategy, Doubts & Mocks"| Groq
+    SocketServer -->|"Token-by-Token Streaming"| Groq
 ```
 
 ---
 
-## Core Workflows and Sequence Diagrams
-
-### 1. User Authentication and Guest Login Flow
-
-PrepOS supports standard JWT account registration/login as well as a zero-friction **"Continue as Guest"** session initialization.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor User
-    participant Client as Web Browser
-    participant API as Express Auth API
-    participant DB as MongoDB Atlas
-
-    alt Guest Login
-        User->>Client: Clicks "Continue as Guest"
-        Client->>API: POST /api/v1/users/guest-login
-        API->>DB: Find or create guest user record
-        DB-->>API: Guest User Document
-        API->>API: Sign Access Token and Refresh Token
-        API-->>Client: HTTP 200 OK + JWT Tokens
-        Client->>Client: Save Access Token in sessionStorage
-        Client->>User: Redirect to Exam Dashboard
-    else Standard Account Login
-        User->>Client: Submits Username & Password
-        Client->>API: POST /api/v1/users/login
-        API->>DB: Query User by Username or Email
-        DB-->>API: User Document + Hashed Password
-        API->>API: Verify Password Hash
-        API->>API: Sign Access Token & Refresh Token
-        API-->>Client: HTTP 200 OK + Cookies & Tokens
-        Client->>User: Display Authenticated Dashboard
-    end
-```
-
----
-
-### 2. Exam Setup and Interactive Strategy Flowchart Generation
-
-When a user submits an exam configuration (or clicks **Load Sample Exam**), the system extracts raw document text, constructs an engineering prompt, queries Groq Llama 3.3 70B for a structured JSON strategy, and renders an interactive tree flowchart.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant Client as Frontend Script
-    participant API as Exam Setup Endpoint
-    participant PDF as PDF/Text Parser
-    participant Cloud as Cloudinary
-    participant Groq as Groq AI Engine
-    participant DB as MongoDB Atlas
-
-    Student->>Client: Fills form OR clicks Load Sample Exam
-    Client->>Client: Attach files via DataTransfer API
-    Client->>API: POST /api/v1/exams/setup
-    API->>Cloud: Upload PDF and Text attachments
-    Cloud-->>API: File URLs
-    API->>PDF: Extract text content from syllabus and PYQs
-    PDF-->>API: Extracted raw syllabus text
-    API->>Groq: Query generateStudyStrategy
-    Groq-->>API: Returns JSON Plan
-    API->>DB: Save Exam Document with strategy JSON
-    DB-->>API: Saved Exam Object
-    API-->>Client: HTTP 201 Created
-    Client->>Client: Render Interactive Tree Flowchart
-    Student->>Client: Check off completed daily tasks
-    Client->>Client: Persist checkbox state to localStorage
-```
-
----
-
-### 3. Real-Time Q&A Chat Streaming via Socket.IO
-
-The QA Chat module uses WebSockets to stream AI responses token-by-token back to the client while storing history in MongoDB.
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant UI as Chat Panel UI
-    participant Gateway as Socket.IO Gateway
-    participant DB as MongoDB Chat Collection
-    participant Groq as Groq Streaming Engine
-
-    Student->>UI: Types question and hits Send
-    UI->>Gateway: emit send-message
-    Gateway->>DB: Save user chat message
-    Gateway-->>UI: emit chat-message-saved
-    Gateway-->>UI: emit chat-stream-start
-    Gateway->>Groq: Request text stream
-    loop Token Streaming
-        Groq-->>Gateway: Yield text chunk
-        Gateway-->>UI: emit chat-stream-chunk
-        UI->>UI: Append chunk and format Markdown
-    end
-    Gateway->>DB: Save complete AI model response
-    Gateway-->>UI: emit chat-stream-end
-```
-
----
-
-### 4. Doubt Solver Workflow
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Student
-    participant UI as Doubt Solver Tab
-    participant API as POST /api/v1/exams/doubt/:examId
-    participant Groq as Groq Llama 3.3 Engine
-
-    Student->>UI: Enters academic question, formula, or code problem
-    UI->>API: Send doubt text + Bearer JWT
-    API->>Groq: Query solveDoubt
-    Groq-->>API: Return structured Markdown explanation
-    API-->>UI: HTTP 200 OK
-    UI->>UI: Render Markdown
-```
-
----
-
-### 5. Mock Exam Engine State Machine
-
-```mermaid
-stateDiagram-v2
-    [*] --> Idle: Tab Activated
-    Idle --> Loading: Fetch or Generate Mock Exam
-    Loading --> ActiveQuiz: Load Questions and Start Timer
-    
-    state ActiveQuiz {
-        [*] --> QuestionView
-        QuestionView --> OptionSelected: Click Option Card
-        OptionSelected --> AnswerChecked: Click Check Answer
-        AnswerChecked --> ViewExplanation: Show Explanation Card
-        ViewExplanation --> NextQuestion: Click Next
-        NextQuestion --> QuestionView
-    }
-
-    ActiveQuiz --> QuizSubmitted: Click Submit OR Timer Expires
-    QuizSubmitted --> ScoreCard: Calculate Score and Save to DB
-    ScoreCard --> ActiveQuiz: Click Restart Quiz
-```
-
----
-
-## Repository Directory Structure
-
-```
-Prep_os-Live/
-├── .env                              # Environment variables
-├── .gitignore                        # Git ignore rules
-├── render.yaml                       # Render deployment manifest
-├── index.js                          # Node.js server entry point
-├── app.js                            # Express configuration & middleware
-├── constants.js                      # System database name constant
-├── package.json                      # Node package manifest
-├── package-lock.json                 # Dependency lockfile
-├── Readme.md                         # Project documentation
-│
-├── client/                           # Frontend Application
-│   ├── index.html                    # Main HTML markup
-│   ├── script.js                     # Application logic & DOM state
-│   ├── style.css                     # Minimalist stylesheet
-│   └── exam_prp.html                 # Page template
-│
-├── server/                           # Backend Application
-│   ├── public/
-│   │   └── temp/                     # Temporary upload directory
-│   └── src/
-│       ├── controllers/
-│       │   ├── exam.controller.js    # Exam & AI business logic
-│       │   └── user.controller.js    # Auth & guest session logic
-│       ├── db/
-│       │   └── index.js              # Database connection helper
-│       ├── middlewares/
-│       │   ├── auth.middleware.js    # JWT auth verification
-│       │   └── multer.middleware.js  # File upload middleware
-│       ├── models/
-│       │   ├── user.model.js         # User model schema
-│       │   ├── exam.model.js         # Exam schema
-│       │   ├── mocktest.model.js     # Quiz schema
-│       │   ├── chat.model.js         # Chat history schema
-│       │   └── subscription.model.js # Subscription schema
-│       ├── routes/
-│       │   ├── exam.routes.js        # Exam API endpoints
-│       │   └── user.routes.js        # User auth API endpoints
-│       ├── utils/
-│       │   ├── ApiError.js           # Custom API Error class
-│       │   ├── ApiResponse.js        # JSON response helper
-│       │   ├── asyncHandler.js       # Controller wrapper
-│       │   ├── cloudinary.js         # Media storage helper
-│       │   └── gemini.js             # Groq SDK AI helper
-│       └── socket.js                 # Socket.IO connection handler
-│
-└── testing_materials/                # Sample test data
-    ├── notes.txt
-    ├── pyq_2025.txt
-    └── syllabus.txt
-```
-
----
-
-## REST API Reference
+## 🔌 REST API & WebSocket Reference
 
 ### User Authentication (`/api/v1/users`)
-
 | Method | Endpoint | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/register` | Public | Registers a new user account |
-| `POST` | `/login` | Public | Authenticates user and issues JWT tokens |
-| `POST` | `/guest-login` | Public | Authenticates or provisions a Guest session |
-| `POST` | `/logout` | Bearer JWT | Revokes tokens and clears auth cookies |
-| `GET` | `/me` | Bearer JWT | Returns current authenticated user profile |
-| `POST` | `/refresh-token` | Public | Issues a new access token via refresh token |
+| `POST` | `/register` | Public | Register new student account |
+| `POST` | `/login` | Public | Authenticate user & issue JWT tokens |
+| `POST` | `/guest-login` | Public | Instant zero-setup guest login |
+| `GET` | `/me` | Bearer JWT | Fetch current authenticated profile |
+| `POST` | `/logout` | Bearer JWT | Invalidate tokens and clear session |
+| `POST` | `/refresh-token` | Public | Refresh expired access token |
 
-### Exam and AI Services (`/api/v1/exams`)
-
+### Exam & Intelligence Services (`/api/v1/exams`)
 | Method | Endpoint | Auth | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/setup` | Bearer JWT | Uploads files, extracts text, and generates study strategy |
-| `GET` | `/list` | Bearer JWT | Retrieves all exams created by the active user |
-| `GET` | `/strategy/:examId` | Bearer JWT | Fetches study strategy JSON for a given exam |
-| `POST` | `/doubt/:examId` | Bearer JWT | Resolves an academic doubt with formatted Markdown |
-| `GET` | `/mock/:examId` | Bearer JWT | Fetches or generates 5-question MCQ mock test |
-| `POST` | `/mock/:examId/submit` | Bearer JWT | Submits final mock exam score and saves results |
-| `GET` | `/chat/:examId` | Bearer JWT | Retrieves past chat message history for an exam |
+| `POST` | `/setup` | Bearer JWT | Ingest syllabus, PYQs, and generate study roadmap |
+| `GET` | `/list` | Bearer JWT | Retrieve all configured exams for active user |
+| `GET` | `/strategy/:examId` | Bearer JWT | Fetch milestone flowchart strategy JSON |
+| `POST` | `/doubt/:examId` | Bearer JWT | Resolve conceptual doubt with step-by-step math |
+| `GET` | `/mock/:examId` | Bearer JWT | Generate or retrieve adaptive assessment questions |
+| `POST` | `/mock/:examId/submit`| Bearer JWT | Submit score and save assessment performance |
+| `GET` | `/chat/:examId` | Bearer JWT | Fetch historical AI tutoring chat messages |
+
+### Real-Time WebSockets (`Socket.IO`)
+| Event | Direction | Payload | Description |
+| :--- | :--- | :--- | :--- |
+| `join-exam` | Client → Server | `examId` | Joins private room for exam context |
+| `send-message` | Client → Server | `{ examId, message }` | Sends student prompt to AI tutor |
+| `chat-stream-start` | Server → Client | None | Signals start of streaming response |
+| `chat-stream-chunk` | Server → Client | `chunk` (string) | Yields token chunk from Groq model |
+| `chat-stream-end` | Server → Client | None | Signals completion of streaming response |
 
 ---
 
-## Local Installation and Development
+## 🛠️ Repository Directory Structure
 
-### 1. Clone Repository and Install Dependencies
+```
+Adaptive-Learning-Engine/
+├── .env.example                          # Environment variable configuration template
+├── package.json                          # NPM dependencies and run scripts
+├── package-lock.json                     # Dependency lockfile
+├── index.js                              # HTTP & Socket.IO server entrypoint
+├── app.js                                # Express 5 configuration & middleware
+├── render.yaml                           # Cloud deployment manifest
+├── Readme.md                             # Comprehensive project documentation
+├── server/                               # Backend Application
+│   ├── public/temp/                      # Local temporary upload storage
+│   └── src/
+│       ├── controllers/
+│       │   ├── exam.controller.js        # Strategy, Doubt, Mock & Ingestion logic
+│       │   └── user.controller.js        # Auth, JWT, and Guest session logic
+│       ├── db/index.js                   # MongoDB Atlas connection helper
+│       ├── middlewares/
+│       │   ├── auth.middleware.js        # JWT verification middleware
+│       │   └── multer.middleware.js      # File attachment middleware
+│       ├── models/
+│       │   ├── user.model.js             # User account schema
+│       │   ├── exam.model.js             # Exam configuration & strategy schema
+│       │   ├── mocktest.model.js         # Adaptive assessment schema
+│       │   └── chat.model.js             # Chat history schema
+│       ├── routes/
+│       │   ├── exam.routes.js            # Exam REST endpoints
+│       │   └── user.routes.js            # User auth REST endpoints
+│       ├── utils/
+│       │   ├── gemini.js                 # Groq Llama 3.3 SDK helper
+│       │   ├── cloudinary.js             # Media storage helper
+│       │   ├── ApiError.js               # Standardized error helper
+│       │   └── ApiResponse.js            # Standardized JSON response helper
+│       └── socket.js                     # Real-time WebSocket token streaming handler
+├── client/                               # Frontend Application
+│   ├── index.html                        # SPA shell with all 6 intelligence modules
+│   ├── style.css                         # Modern dark design system & responsive grid
+│   ├── script.js                         # Master UI orchestrator & state manager
+│   ├── server.js                         # Standalone frontend preview development server
+│   └── js/
+│       ├── api.js                        # Unified API gateway & Socket.IO client
+│       ├── cognitive-model.js            # BKT / DKT cognitive modeling & predictions
+│       ├── knowledge-graph.js            # Force-directed Canvas concept graph engine
+│       └── adaptive-quiz.js              # Adaptive IRT testing & diagnostic engine
+└── testing_materials/                    # Real course files for immediate 1-click testing
+    ├── syllabus.txt                      # Operating Systems syllabus
+    ├── pyq_2025.txt                      # Previous year examination questions
+    └── notes.txt                         # High-yield revision formulas & definitions
+```
+
+---
+
+## ⚡ Quickstart & Local Setup
+
+### 1. Clone the Repository
 ```bash
-git clone https://github.com/Ayushkhar/Prep_os-Live.git
-cd Prep_os-Live
+git clone https://github.com/anuraggupta07122006/Adaptive-Learning-Engine.git
+cd Adaptive-Learning-Engine
 npm install
 ```
 
-### 2. Configure Environment Variables
-Create a `.env` file in the root directory:
+### 2. Option A: Instant Frontend Preview (Zero Database Setup)
+```bash
+npm run client
+```
+Open **[http://localhost:5000](http://localhost:5000)** in your browser. Click **"Continue as Guest"** and **"Load Sample Exam"** to immediately test the Knowledge Graph, DKT analytics, Adaptive Quiz, and AI Tutor.
 
+### 3. Option B: Full-Stack Production Mode
+Create a `.env` file in the root directory (based on `.env.example`):
 ```env
 PORT=3000
-MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/exam_prep
 GROQ_API_KEY=your_groq_api_key
 CLOUDINARY_API_KEY=your_cloudinary_api_key
 CLOUDINARY_API_SECRET=your_cloudinary_api_secret
@@ -323,7 +236,7 @@ REFRESH_TOKEN_EXPIRY=10d
 CORS_ORIGIN=*
 ```
 
-### 3. Run Application Locally
+Start the server:
 ```bash
 npm start
 ```
@@ -331,20 +244,17 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser.
 
 ---
 
-## Cloud Deployment
+## 🔬 Research & Academic Alignment
 
-This repository includes a pre-configured `render.yaml` manifest.
-
-1. Create a new **Web Service** on Render.
-2. Connect your GitHub repository `Ayushkhar/Prep_os-Live`.
-3. Render automatically loads build (`npm install`) and start (`npm start`) commands.
-4. Add environment variables in Render's **Environment** section.
-5. Click **Deploy**.
+This system is engineered to serve as a research-grade foundation for studies on:
+- **Transformer & Bayesian Knowledge Tracing (BKT/DKT)** for Indian Competitive Exam Systems.
+- **Concept Dependency Graph Learning**: Modeling prerequisite dependency violations in student assessment trajectories.
+- **Explainable Student Performance Modeling**: Estimating learning retention and exam readiness using dynamic Item Response Theory (IRT).
 
 ---
 
-## Author
+## 👤 Author
 
-**Suryansh Khare**  
-- GitHub: [https://github.com/Ayushkhar](https://github.com/Ayushkhar)
-- Live Portal: [prep-os-live.onrender.com](https://prepos.suryanshkhare.online)
+**Anurag Gupta**  
+- GitHub: [@anuraggupta07122006](https://github.com/anuraggupta07122006)  
+- Email: ag257725941@gmail.com  
