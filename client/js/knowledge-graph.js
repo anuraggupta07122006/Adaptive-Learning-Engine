@@ -212,9 +212,19 @@
         }
 
         drawGrid(ctx) {
-            const gridSpacing = 40;
-            const size = 1400;
-            ctx.strokeStyle = "rgba(38, 48, 68, 0.4)";
+            const gridSpacing = 44;
+            const size = 1600;
+
+            // Ambient central purple nebula glow
+            const nebula = ctx.createRadialGradient(0, 0, 20, 0, 0, 650);
+            nebula.addColorStop(0, "rgba(139, 92, 246, 0.12)");
+            nebula.addColorStop(0.5, "rgba(99, 102, 241, 0.05)");
+            nebula.addColorStop(1, "transparent");
+            ctx.fillStyle = nebula;
+            ctx.fillRect(-size, -size, size * 2, size * 2);
+
+            // Subtle dot matrix / grid
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
             ctx.lineWidth = 1;
 
             ctx.beginPath();
@@ -237,15 +247,15 @@
                 const isConnectedToSelected = this.selectedNode &&
                     (this.selectedNode.id === s.id || this.selectedNode.id === t.id);
 
-                let strokeStyle = "rgba(100, 116, 139, 0.35)";
-                let lineWidth = 1.5;
+                let strokeStyle = "rgba(139, 92, 246, 0.32)";
+                let lineWidth = 1.6;
 
                 if (this.selectedNode) {
                     if (isConnectedToSelected) {
-                        strokeStyle = "#2563EB";
-                        lineWidth = 2.2;
+                        strokeStyle = "#8B5CF6";
+                        lineWidth = 2.6;
                     } else {
-                        strokeStyle = "rgba(38, 48, 68, 0.25)";
+                        strokeStyle = "rgba(255, 255, 255, 0.06)";
                     }
                 }
 
@@ -275,7 +285,7 @@
         }
 
         drawArrowHead(ctx, x, y, angle, color) {
-            const headLen = 7;
+            const headLen = 8;
             ctx.save();
             ctx.fillStyle = color;
             ctx.translate(x, y);
@@ -294,55 +304,70 @@
                 const isSelected = this.selectedNode && this.selectedNode.id === node.id;
                 const isHovered = this.hoveredNode && this.hoveredNode.id === node.id;
 
-                let strokeColor = "#059669"; // Mastered (Emerald)
+                let strokeColor = "#10B981"; // Mastered (Emerald)
+                let glowColor = "rgba(16, 185, 129, 0.25)";
                 if (node.masteryPct < 45) {
-                    strokeColor = "#DC2626"; // Critical gap (Crimson)
+                    strokeColor = "#F43F5E"; // Critical gap (Neon Rose)
+                    glowColor = "rgba(244, 63, 94, 0.35)";
                 } else if (node.masteryPct < 75) {
-                    strokeColor = "#D97706"; // Learning (Amber)
+                    strokeColor = "#F59E0B"; // Learning (Warm Amber)
+                    glowColor = "rgba(245, 158, 11, 0.25)";
                 }
 
-                // Halo glow if selected or hovered or prerequisite breach
+                // Halo glow if selected, hovered, or prerequisite breach
                 if (isSelected || isHovered || node.hasPrereqBreach) {
                     ctx.beginPath();
-                    ctx.arc(node.x, node.y, node.radius + (node.hasPrereqBreach ? 6 : 5), 0, Math.PI * 2);
+                    const haloRadius = node.radius + (isSelected ? 9 : isHovered ? 7 : 6);
+                    ctx.arc(node.x, node.y, haloRadius, 0, Math.PI * 2);
                     ctx.fillStyle = node.hasPrereqBreach
-                        ? "rgba(220, 38, 38, 0.2)"
-                        : isSelected ? "rgba(37, 99, 235, 0.25)" : "rgba(148, 163, 184, 0.12)";
+                        ? "rgba(244, 63, 94, 0.35)"
+                        : isSelected ? "rgba(139, 92, 246, 0.4)" : "rgba(6, 182, 212, 0.25)";
                     ctx.fill();
                 }
 
-                // Node background circle
+                // 3D Glass Radial Node Background
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "#111622";
+                const grad = ctx.createRadialGradient(
+                    node.x - node.radius * 0.3,
+                    node.y - node.radius * 0.3,
+                    2,
+                    node.x,
+                    node.y,
+                    node.radius
+                );
+                grad.addColorStop(0, "#1E2644");
+                grad.addColorStop(0.7, "#111628");
+                grad.addColorStop(1, "#0A0D1A");
+                ctx.fillStyle = grad;
                 ctx.fill();
 
-                // Border ring colored by mastery
-                ctx.lineWidth = isSelected ? 3 : 2;
-                ctx.strokeStyle = isSelected ? "#2563EB" : strokeColor;
+                // Glowing border ring
+                ctx.lineWidth = isSelected ? 3.5 : 2.5;
+                ctx.strokeStyle = isSelected ? "#A78BFA" : strokeColor;
                 ctx.stroke();
 
                 // Mastery percentage inside node
-                ctx.fillStyle = "#F1F5F9";
-                ctx.font = "600 11px 'JetBrains Mono', monospace";
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "700 12px 'JetBrains Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
-                ctx.fillText(`${node.masteryPct}%`, node.x, node.y - 1);
+                ctx.fillText(`${node.masteryPct}%`, node.x, node.y);
 
                 // Node Title label beneath circle
-                ctx.fillStyle = isSelected ? "#F1F5F9" : "#94A3B8";
-                ctx.font = `${isSelected ? "600" : "500"} 11px 'IBM Plex Sans', sans-serif`;
-                ctx.fillText(this.truncate(node.name, 22), node.x, node.y + node.radius + 14);
+                ctx.fillStyle = isSelected ? "#FFFFFF" : isHovered ? "#E2E8F0" : "#94A3B8";
+                ctx.font = `${isSelected ? "700" : "600"} 11px 'Plus Jakarta Sans', sans-serif`;
+                ctx.fillText(this.truncate(node.name, 24), node.x, node.y + node.radius + 15);
 
-                // Small Prerequisite Breach Alert Badge
+                // Prerequisite Breach Warning Icon
                 if (node.hasPrereqBreach) {
-                    ctx.fillStyle = "#DC2626";
+                    ctx.fillStyle = "#F43F5E";
                     ctx.beginPath();
-                    ctx.arc(node.x + node.radius - 4, node.y - node.radius + 4, 6, 0, Math.PI * 2);
+                    ctx.arc(node.x + node.radius - 3, node.y - node.radius + 3, 7, 0, Math.PI * 2);
                     ctx.fill();
                     ctx.fillStyle = "#FFFFFF";
-                    ctx.font = "bold 8px 'JetBrains Mono', monospace";
-                    ctx.fillText("!", node.x + node.radius - 4, node.y - node.radius + 4);
+                    ctx.font = "bold 9px 'JetBrains Mono', monospace";
+                    ctx.fillText("!", node.x + node.radius - 3, node.y - node.radius + 3);
                 }
             }
         }
