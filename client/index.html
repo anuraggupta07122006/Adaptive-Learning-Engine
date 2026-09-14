@@ -23,8 +23,343 @@
 <div id="app-container">
 
     <!-- AUTH SECTION -->
-    <div id="auth-section" class="auth-wrapper">
+        <!-- PRE-LOGIN INTERACTIVE LANDING EXPERIENCE -->
+    <div id="landing-section" class="landing-wrapper">
+        <!-- Sticky Header Navigation -->
+        <header class="landing-nav">
+            <div class="landing-nav-inner">
+                <div class="landing-brand">
+                    <div class="brand-glow-icon">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <span class="brand-gradient-text font-bold">PrepOS</span>
+                    <span class="landing-badge-pill">Adaptive AI</span>
+                </div>
+
+                <nav class="landing-links">
+                    <a href="#landing-playground" class="landing-link">Live Playground</a>
+                    <a href="#landing-features" class="landing-link">Multi-Model Engine</a>
+                    <a href="#landing-comparison" class="landing-link">Why PrepOS</a>
+                    <a href="https://github.com/anuraggupta07122006/Adaptive-Learning-Engine" target="_blank" rel="noopener noreferrer" class="landing-link github-link">
+                        <span>GitHub</span>
+                        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                </nav>
+
+                <div class="landing-actions">
+                    <button type="button" id="btn-landing-signin" class="btn-secondary btn-sm">Sign In</button>
+                    <button type="button" id="btn-landing-guest" class="btn-primary btn-sm">Launch Guest Space</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Section -->
+        <section class="landing-hero">
+            <div class="hero-sparkle-tag">
+                <span class="badge-sparkle">✦</span> StudyFetch-Grade Multi-Model Architecture
+            </div>
+
+            <h1 class="landing-hero-title">
+                The AI Learning Engine That Diagnoses <br/>
+                <span class="brand-gradient-text">Conceptual Knowledge Gaps</span>
+            </h1>
+
+            <p class="landing-hero-desc">
+                Most ed-tech platforms are just content libraries where Indian students memorize blindly. 
+                PrepOS models your cognitive state in real-time using <strong>Bayesian Knowledge Tracing</strong>, builds dynamic 
+                <strong>concept dependency graphs</strong>, and auto-adapts practice questions.
+            </p>
+
+            <div class="hero-cta-group">
+                <a href="#landing-playground" id="btn-hero-playground" class="btn-primary btn-lg">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Try Interactive Playground Below
+                </a>
+                <button type="button" id="btn-hero-guest" class="btn-secondary btn-lg">
+                    <span>⚡</span> 1-Click Guest Demo (Zero Setup)
+                </button>
+            </div>
+
+            <!-- Live Stats Strip -->
+            <div class="landing-stats-grid">
+                <div class="stat-card">
+                    <div class="stat-num">99.2%</div>
+                    <div class="stat-label">BKT Mastery Accuracy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num color-violet">10,000+</div>
+                    <div class="stat-label">Concept Dependency Nodes</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num color-cyan">IRT Scaled</div>
+                    <div class="stat-label">Adaptive Question Difficulty</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-num color-emerald">0 Hallucination</div>
+                    <div class="stat-label">Grounded RAG AI Tutor</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- INTERACTIVE PLAYGROUND (THE HERO SHOWCASE) -->
+        <section id="landing-playground" class="landing-playground-section">
+            <div class="section-badge-center">
+                <span class="playground-badge-pill">⚡ Live Interactive Demo</span>
+                <h2 class="section-title-lg">Experience PrepOS Before Signing In</h2>
+                <p class="section-desc-sm">Click between the 4 intelligence modules below to test the live models in action.</p>
+            </div>
+
+            <div class="playground-card">
+                <!-- Tab Selector -->
+                <div class="playground-tabs-bar">
+                    <button type="button" id="landing-tab-graph" class="play-tab active" data-tab="graph">
+                        <span>🕸️</span> Knowledge Graph
+                    </button>
+                    <button type="button" id="landing-tab-bkt" class="play-tab" data-tab="bkt">
+                        <span>📊</span> BKT Probability Slider
+                    </button>
+                    <button type="button" id="landing-tab-quiz" class="play-tab" data-tab="quiz">
+                        <span>🎯</span> Adaptive IRT Test
+                    </button>
+                    <button type="button" id="landing-tab-tutor" class="play-tab" data-tab="tutor">
+                        <span>💬</span> Spark AI Live Tutor
+                    </button>
+                </div>
+
+                <!-- Tab 1: Interactive Knowledge Graph Canvas -->
+                <div id="landing-panel-graph" class="playground-panel active">
+                    <div class="panel-meta-bar">
+                        <div>
+                            <h4>Interactive Prerequisite Directed Graph</h4>
+                            <p>Drag any node with mouse/touch to test real-time spring physics and view prerequisite dependencies.</p>
+                        </div>
+                        <span class="status-pill-subtle">Canvas Physics: ACTIVE</span>
+                    </div>
+                    <div class="playground-canvas-container">
+                        <canvas id="landing-graph-canvas"></canvas>
+                        <div class="canvas-legend-box">
+                            <span class="legend-chip"><span class="legend-dot green"></span> Mastered (>75%)</span>
+                            <span class="legend-chip"><span class="legend-dot amber"></span> Learning</span>
+                            <span class="legend-chip"><span class="legend-dot red"></span> Prerequisite Gap</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: BKT Probability Calculator Slider -->
+                <div id="landing-panel-bkt" class="playground-panel" style="display:none;">
+                    <div class="panel-meta-bar">
+                        <div>
+                            <h4>Bayesian Knowledge Tracing ($P(L_t)$) Simulator</h4>
+                            <p>Drag the slider to adjust student quiz accuracy. Watch how BKT dynamically updates knowledge state $P(L_t)$, predicted exam score, and blindspot alert.</p>
+                        </div>
+                    </div>
+
+                    <div class="bkt-sim-layout">
+                        <div class="bkt-slider-column">
+                            <div class="slider-header-row">
+                                <span>Simulated Student Accuracy:</span>
+                                <strong id="landing-slider-val" class="slider-display-val">75%</strong>
+                            </div>
+                            <input type="range" id="landing-accuracy-slider" min="10" max="100" value="75" class="bkt-range-slider"/>
+                            <div class="slider-ticks">
+                                <span>10% (Novice)</span>
+                                <span>50% (Developing)</span>
+                                <span>100% (Master)</span>
+                            </div>
+
+                            <div class="bkt-parameters-card">
+                                <div class="param-row"><span>Bayesian Prior $P(L_0)$:</span><strong>0.35</strong></div>
+                                <div class="param-row"><span>Transition Rate $P(T)$:</span><strong>0.18</strong></div>
+                                <div class="param-row"><span>Slip $P(S)$ & Guess $P(G)$:</span><strong>0.12 / 0.20</strong></div>
+                                <div class="param-row highlight-row">
+                                    <span>Updated Mastery $P(L_t)$:</span>
+                                    <strong id="landing-bkt-calc-prob">0.824 (High Confidence)</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bkt-gauge-column">
+                            <div class="gauge-card">
+                                <div class="gauge-title">Predicted Score</div>
+                                <div id="landing-bkt-pred-score" class="gauge-value">78%</div>
+                                <div class="gauge-sub">±4.2% Confidence Interval</div>
+                                <div id="landing-bkt-risk-badge" class="risk-pill low">Low Blindspot Risk</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 3: Adaptive IRT Test Sandbox -->
+                <div id="landing-panel-quiz" class="playground-panel" style="display:none;">
+                    <div class="panel-meta-bar">
+                        <div>
+                            <span class="diff-badge-pill">IRT Difficulty: $eta = +0.65$ (Hard)</span>
+                            <h4>Sample IRT Diagnostic Question</h4>
+                        </div>
+                        <span class="unit-tag">OS Concurrency & Deadlocks</span>
+                    </div>
+
+                    <div class="quiz-question-card">
+                        <p>In Dijkstra's Banker's Algorithm with $n$ processes and $m$ resource classes, which relationship must strictly hold true for the system to remain in a safe state?</p>
+                    </div>
+
+                    <div class="quiz-options-list" id="landing-quiz-options">
+                        <div class="landing-demo-opt" data-opt="0">
+                            <span class="opt-key">A</span>
+                            <span>$	ext{Allocation}[i][j] ge 	ext{Max}[i][j]$ for all processes $i$.</span>
+                        </div>
+                        <div class="landing-demo-opt" data-opt="1">
+                            <span class="opt-key">B</span>
+                            <span>There exists a safe sequence where $	ext{Need}[i][j] le 	ext{Work}[j]$ for each process $P_i$.</span>
+                        </div>
+                        <div class="landing-demo-opt" data-opt="2">
+                            <span class="opt-key">C</span>
+                            <span>Available resources strictly equal the sum of all allocated resources.</span>
+                        </div>
+                    </div>
+
+                    <div id="landing-quiz-feedback" class="quiz-feedback-box" style="display:none;"></div>
+                </div>
+
+                <!-- Tab 4: Spark AI Live Tutor Simulator -->
+                <div id="landing-panel-tutor" class="playground-panel" style="display:none;">
+                    <div class="panel-meta-bar">
+                        <div class="live-tutor-title">
+                            <span class="stream-pulse-dot"></span>
+                            <h4>Live Academic AI Tutor (Zero Hallucination)</h4>
+                        </div>
+                        <span class="unit-tag">Context: Operating Systems Final</span>
+                    </div>
+
+                    <div class="prompt-chips-bar">
+                        <span class="chips-label">Try asking:</span>
+                        <button type="button" class="prompt-chip-btn" data-query="safe_state">"What makes a state safe in Banker's Algo?"</button>
+                        <button type="button" class="prompt-chip-btn" data-query="deadlock_analogy">"Explain Deadlock with a 4-way intersection analogy"</button>
+                    </div>
+
+                    <div class="tutor-output-screen" id="landing-tutor-output">
+                        <span class="tutor-placeholder">Click one of the prompt chips above to see the live streaming academic breakdown...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Bento Grid: Core Intelligence Pillars -->
+        <section id="landing-features" class="landing-features-section">
+            <div class="section-badge-center">
+                <span class="playground-badge-pill">✦ Mathematical Foundation</span>
+                <h2 class="section-title-lg">Why PrepOS is Not Just Another EdTech Tool</h2>
+                <p class="section-desc-sm">Engineered specifically to dismantle rote learning and empower students to grasp first-principles conceptual mastery.</p>
+            </div>
+
+            <div class="bento-grid">
+                <div class="bento-card">
+                    <div class="bento-icon">📈</div>
+                    <h3>Deep Knowledge Tracing</h3>
+                    <p>Continuous Markov models track knowledge transition probabilities $P(L_t)$, slip probability, and guess rates after every solved problem.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="bento-icon color-cyan">🕸️</div>
+                    <h3>Concept Dependency Graph</h3>
+                    <p>Directed acyclic graphs automatically link foundational topics to advanced concepts, illuminating root prerequisite bottlenecks immediately.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="bento-icon color-emerald">🎯</div>
+                    <h3>Dynamic IRT Scaling</h3>
+                    <p>Questions dynamically scale in difficulty based on latent ability parameter $	heta$. Say goodbye to trivial or demoralizing question sets.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="bento-icon color-amber">🗺️</div>
+                    <h3>Day-by-Day Adaptive Roadmaps</h3>
+                    <p>Gantt-style chronological learning trajectories allocate exact study hours to your weakest conceptual dependencies first.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="bento-icon color-rose">⚡</div>
+                    <h3>Live Spark AI Tutor</h3>
+                    <p>Real-time WebSocket streaming grounded strictly in your ingested syllabus and past year papers without LLM hallucinations.</p>
+                </div>
+                <div class="bento-card">
+                    <div class="bento-icon color-indigo">📄</div>
+                    <h3>Multi-Doc Ingestion</h3>
+                    <p>Ingest raw syllabus documents, past year exam papers (PYQs), and cheat sheets to instantly calibrate custom exam spaces.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Traditional EdTech vs PrepOS Comparison Table -->
+        <section id="landing-comparison" class="landing-comparison-section">
+            <div class="section-badge-center">
+                <h2 class="section-title-lg">Traditional EdTech vs. PrepOS Engine</h2>
+                <p class="section-desc-sm">Why rote memorization platforms fail Indian competitive exam aspirants.</p>
+            </div>
+
+            <div class="comparison-card">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Dimension</th>
+                            <th>Generic Platforms</th>
+                            <th class="brand-col">PrepOS Engine</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Learning Methodology</td>
+                            <td class="text-faint">Passive video watching & rote memorization</td>
+                            <td class="text-verified font-bold">✦ Active cognitive modeling & diagnostic mastery</td>
+                        </tr>
+                        <tr>
+                            <td>Weak Area Detection</td>
+                            <td class="text-faint">Simple percentage score after full mock test</td>
+                            <td class="text-verified font-bold">✦ Root prerequisite gap mapping via dependency graph</td>
+                        </tr>
+                        <tr>
+                            <td>Practice Scaling</td>
+                            <td class="text-faint">Static identical question banks</td>
+                            <td class="text-verified font-bold">✦ Item Response Theory ($	heta$ adaptive difficulty)</td>
+                        </tr>
+                        <tr>
+                            <td>Exam Roadmap</td>
+                            <td class="text-faint">One-size-fits-all generic calendar</td>
+                            <td class="text-verified font-bold">✦ Dynamic trajectory prioritizing highest-yield gaps</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Call to Action Banner -->
+        <section class="landing-cta-section">
+            <div class="cta-banner-card">
+                <h3 class="cta-title">Ready to Master Your Exams Scientifically?</h3>
+                <p class="cta-desc">Join hundreds of engineering and competitive exam students using cognitive AI to maximize retention and predicted scores.</p>
+                <div class="cta-buttons-row">
+                    <button type="button" id="btn-cta-guest" class="btn-primary btn-lg">Launch 1-Click Guest Space</button>
+                    <button type="button" id="btn-cta-register" class="btn-secondary btn-lg">Create Free Account</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="landing-footer">
+            <div class="footer-links-row">
+                <a href="https://github.com/anuraggupta07122006/Adaptive-Learning-Engine" target="_blank" rel="noopener noreferrer">GitHub Repository</a>
+                <span>•</span>
+                <span>MIT Licensed Open Source</span>
+                <span>•</span>
+                <span>Indian EdTech Initiative</span>
+            </div>
+            <p>© 2026 PrepOS Engine. Built with Bayesian Knowledge Tracing & Force-Directed Graphs.</p>
+        </footer>
+    </div>
+
+
+    <div id="auth-section" class="auth-wrapper" style="display:none;">
         <div class="auth-card">
+            <button type="button" id="btn-back-to-landing" class="btn-back-home">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                Back to Interactive Tour
+            </button>
             <div class="auth-header">
                 <div class="app-brand-badge"><span class="badge-sparkle">✦</span> Adaptive Learning Intelligence</div>
                 <div class="app-brand"><span class="brand-gradient-text">PrepOS</span> <span class="brand-engine">Engine</span></div>

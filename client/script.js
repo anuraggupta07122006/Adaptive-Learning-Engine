@@ -188,8 +188,7 @@
                     chatSocketSession.disconnect();
                     chatSocketSession = null;
                 }
-                $("auth-section").style.display = "flex";
-                $("dashboard-section").style.display = "none";
+                showLanding();
                 showToast("Signed out successfully.", "success");
             });
         }
@@ -219,7 +218,10 @@
     async function checkAuthSession() {
         const token = window.apiGateway.getToken();
         const cachedUser = window.apiGateway.getUser();
-        if (!token) return;
+        if (!token) {
+            showLanding();
+            return;
+        }
 
         if (cachedUser) {
             currentUser = cachedUser;
@@ -231,10 +233,13 @@
         if (res && res.success) {
             currentUser = res.data;
             enterDashboard();
+        } else {
+            showLanding();
         }
     }
 
     function enterDashboard() {
+        if ($("landing-section")) $("landing-section").style.display = "none";
         $("auth-section").style.display = "none";
         $("dashboard-section").style.display = "grid";
         if ($("user-display-name") && currentUser) {
@@ -1001,7 +1006,306 @@ UNIT 4: FILE SYSTEMS & STORAGE
        TAB NAVIGATION WIRING
        ══════════════════════════════════════════════════════════════════ */
 
-    function initTabNavigation() {
+    /* ══════════════════════════════════════════════════════════════════
+       PRE-LOGIN INTERACTIVE LANDING EXPERIENCE
+       ══════════════════════════════════════════════════════════════════ */
+
+    function showLanding() {
+        if ($("landing-section")) $("landing-section").style.display = "block";
+        if ($("auth-section")) $("auth-section").style.display = "none";
+        if ($("dashboard-section")) $("dashboard-section").style.display = "none";
+        setTimeout(initLandingGraph, 30);
+    }
+
+    function showAuth() {
+        if ($("landing-section")) $("landing-section").style.display = "none";
+        if ($("auth-section")) $("auth-section").style.display = "flex";
+        if ($("dashboard-section")) $("dashboard-section").style.display = "none";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function initLandingSection() {
+        // Navigation buttons
+        const btnNavSignIn = $("btn-landing-signin");
+        const btnHeroSignIn = $("btn-hero-signin");
+        const btnCtaRegister = $("btn-cta-register");
+        const btnBackLanding = $("btn-back-to-landing");
+
+        [btnNavSignIn, btnHeroSignIn, btnCtaRegister].forEach(b => {
+            if (b) b.addEventListener("click", showAuth);
+        });
+
+        if (btnBackLanding) {
+            btnBackLanding.addEventListener("click", showLanding);
+        }
+
+        // Guest Space launches directly into dashboard
+        const handleGuestLaunch = async (btn) => {
+            if (!btn) return;
+            const origText = btn.innerHTML;
+            btn.innerHTML = `<span class="spinner" style="width:14px;height:14px;margin-right:6px;display:inline-block;vertical-align:middle;"></span> Launching...`;
+            btn.disabled = true;
+
+            const res = await window.apiGateway.guestLogin();
+            btn.innerHTML = origText;
+            btn.disabled = false;
+
+            if (res.success) {
+                currentUser = res.data.user;
+                showToast("Welcome to PrepOS, Scholar!", "success");
+                enterDashboard();
+            } else {
+                showToast(res.message || "Failed to launch guest session.", "danger");
+            }
+        };
+
+        const btnNavGuest = $("btn-landing-guest");
+        const btnHeroGuest = $("btn-hero-guest");
+        const btnCtaGuest = $("btn-cta-guest");
+
+        if (btnNavGuest) btnNavGuest.addEventListener("click", () => handleGuestLaunch(btnNavGuest));
+        if (btnHeroGuest) btnHeroGuest.addEventListener("click", () => handleGuestLaunch(btnHeroGuest));
+        if (btnCtaGuest) btnCtaGuest.addEventListener("click", () => handleGuestLaunch(btnCtaGuest));
+
+        // Playground Tabs
+        const playTabs = document.querySelectorAll(".play-tab");
+        playTabs.forEach(tabBtn => {
+            tabBtn.addEventListener("click", () => {
+                const targetTab = tabBtn.dataset.tab;
+                playTabs.forEach(t => t.classList.remove("active"));
+                tabBtn.classList.add("active");
+
+                document.querySelectorAll(".playground-panel").forEach(p => {
+                    p.style.display = "none";
+                    p.classList.remove("active");
+                });
+
+                const panel = $(`landing-panel-${targetTab}`);
+                if (panel) {
+                    panel.style.display = "block";
+                    panel.classList.add("active");
+                }
+
+                if (targetTab === "graph") {
+                    setTimeout(initLandingGraph, 30);
+                }
+            });
+        });
+
+        // BKT Probability Simulator
+        const slider = $("landing-accuracy-slider");
+        if (slider) {
+            slider.addEventListener("input", (e) => {
+                const val = parseInt(e.target.value, 10);
+                const displayVal = $("landing-slider-val");
+                const calcProb = $("landing-bkt-calc-prob");
+                const predScore = $("landing-bkt-pred-score");
+                const riskBadge = $("landing-bkt-risk-badge");
+
+                if (displayVal) displayVal.innerText = `${val}%`;
+
+                const prob = (0.22 + (val / 100) * 0.74).toFixed(3);
+                const score = Math.round(val * 0.85 + 10);
+
+                if (calcProb) {
+                    calcProb.innerText = `${prob} (${val >= 70 ? 'High Confidence' : val >= 45 ? 'Developing' : 'Critical Need'})`;
+                }
+                if (predScore) {
+                    predScore.innerText = `${score}%`;
+                }
+                if (riskBadge) {
+                    if (val >= 70) {
+                        riskBadge.className = "risk-pill low";
+                        riskBadge.innerText = "Low Blindspot Risk";
+                    } else if (val >= 45) {
+                        riskBadge.className = "risk-pill moderate";
+                        riskBadge.innerText = "Moderate Risk — Review Prereqs";
+                    } else {
+                        riskBadge.className = "risk-pill high";
+                        riskBadge.innerText = "High Risk — Critical Prereq Breach";
+                    }
+                }
+            });
+        }
+
+        // Adaptive IRT Quiz Demo
+        const demoOpts = document.querySelectorAll(".landing-demo-opt");
+        const fbBox = $("landing-quiz-feedback");
+        demoOpts.forEach(opt => {
+            opt.addEventListener("click", () => {
+                const optIndex = parseInt(opt.dataset.opt, 10);
+                demoOpts.forEach(o => {
+                    o.classList.remove("correct", "incorrect");
+                });
+
+                if (optIndex === 1) {
+                    opt.classList.add("correct");
+                    if (fbBox) {
+                        fbBox.style.display = "block";
+                        fbBox.className = "quiz-feedback-box correct";
+                        fbBox.innerHTML = `<strong>✓ Concept Mastered:</strong> Exactly right! The safety algorithm guarantees that for every process $P_i$, its Need can be satisfied by current Work (Available + released allocations). Your knowledge state in <em>Banker's Algorithm</em> scaled to <strong>88%</strong>.`;
+                    }
+                } else {
+                    opt.classList.add("incorrect");
+                    const correctOpt = document.querySelector('.landing-demo-opt[data-opt="1"]');
+                    if (correctOpt) correctOpt.classList.add("correct");
+                    if (fbBox) {
+                        fbBox.style.display = "block";
+                        fbBox.className = "quiz-feedback-box incorrect";
+                        fbBox.innerHTML = `<strong>✗ Prerequisite Gap Detected:</strong> Option B is the correct safety condition. The system must verify that for each sequence step, $\\text{Need} \\le \\text{Work}$. Knowledge state adjusted: DKT recommends practicing foundational <em>Resource Allocation Graphs</em> first.`;
+                    }
+                }
+            });
+        });
+
+        // Spark AI Live Tutor Streaming Simulation
+        const tutorChips = document.querySelectorAll(".prompt-chip-btn");
+        const tutorOutput = $("landing-tutor-output");
+
+        const tutorExplanations = {
+            safe_state: "In Dijkstra's Banker's Algorithm, a state is **Safe** if there exists at least one execution sequence \\langle P_1, P_2, \\dots, P_n \\rangle such that every process can obtain its maximum declared resources, finish execution, and release held resources without inducing a circular deadlock condition. A safe state is mathematically guaranteed immune to deadlock under all future worst-case requests.",
+            deadlock_analogy: "Imagine a 4-way intersection where four vehicles arrive simultaneously from North, South, East, and West. Each moves forward and signals a left turn. North blocks West, West blocks South, South blocks East, and East blocks North. Nobody can advance because each occupies space needed by another (Mutual Exclusion, Hold & Wait, No Preemption, Circular Wait). That is the textbook definition of Deadlock!"
+        };
+
+        let currentTypingTimer = null;
+        tutorChips.forEach(chip => {
+            chip.addEventListener("click", () => {
+                const queryKey = chip.dataset.query;
+                const text = tutorExplanations[queryKey] || "Analyzing conceptual derivation...";
+                if (currentTypingTimer) clearInterval(currentTypingTimer);
+
+                if (tutorOutput) {
+                    tutorOutput.innerHTML = `<span style="font-weight:700;color:var(--text-sparkle);">PrepOS AI Tutor: </span><span id="landing-typing-text" class="typing-cursor"></span>`;
+                    const span = $("landing-typing-text");
+                    let charIdx = 0;
+                    currentTypingTimer = setInterval(() => {
+                        span.innerText += text[charIdx];
+                        charIdx++;
+                        if (charIdx >= text.length) {
+                            clearInterval(currentTypingTimer);
+                            span.classList.remove("typing-cursor");
+                        }
+                    }, 14);
+                }
+            });
+        });
+    }
+
+    let landingCanvasRunning = false;
+    function initLandingGraph() {
+        const canvas = $("landing-graph-canvas");
+        if (!canvas) return;
+        const ctx = canvas.getContext("2d");
+        const parent = canvas.parentElement;
+
+        const dpr = window.devicePixelRatio || 1;
+        const width = parent.clientWidth || 800;
+        const height = parent.clientHeight || 360;
+
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        canvas.style.width = `${width}px`;
+        canvas.style.height = `${height}px`;
+        ctx.resetTransform?.();
+        ctx.scale(dpr, dpr);
+
+        const nodes = [
+            { id: "1", name: "Operating Systems", x: width * 0.16, y: height * 0.5, r: 24, mastery: 85, color: "#10B981" },
+            { id: "2", name: "Process Management", x: width * 0.38, y: height * 0.28, r: 24, mastery: 72, color: "#F59E0B" },
+            { id: "3", name: "CPU Scheduling", x: width * 0.62, y: height * 0.32, r: 24, mastery: 80, color: "#10B981" },
+            { id: "4", name: "Deadlocks", x: width * 0.42, y: height * 0.72, r: 24, mastery: 35, color: "#F43F5E" },
+            { id: "5", name: "Banker's Algorithm", x: width * 0.74, y: height * 0.70, r: 24, mastery: 40, color: "#F43F5E" },
+            { id: "6", name: "Memory Paging", x: width * 0.86, y: height * 0.44, r: 22, mastery: 75, color: "#10B981" }
+        ];
+
+        const links = [
+            { s: nodes[0], t: nodes[1] },
+            { s: nodes[1], t: nodes[2] },
+            { s: nodes[1], t: nodes[3] },
+            { s: nodes[3], t: nodes[4] },
+            { s: nodes[0], t: nodes[5] }
+        ];
+
+        let draggedNode = null;
+
+        canvas.onmousedown = (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mx = e.clientX - rect.left;
+            const my = e.clientY - rect.top;
+            draggedNode = nodes.find(n => Math.hypot(n.x - mx, n.y - my) < n.r + 6);
+        };
+        window.addEventListener("mousemove", (e) => {
+            if (!draggedNode) return;
+            const rect = canvas.getBoundingClientRect();
+            draggedNode.x = Math.max(30, Math.min(width - 30, e.clientX - rect.left));
+            draggedNode.y = Math.max(30, Math.min(height - 30, e.clientY - rect.top));
+        });
+        window.addEventListener("mouseup", () => { draggedNode = null; });
+
+        function renderLandingCanvas() {
+            ctx.clearRect(0, 0, width, height);
+
+            // Subtle nebula
+            const nebula = ctx.createRadialGradient(width * 0.5, height * 0.5, 10, width * 0.5, height * 0.5, 300);
+            nebula.addColorStop(0, "rgba(139, 92, 246, 0.14)");
+            nebula.addColorStop(1, "transparent");
+            ctx.fillStyle = nebula;
+            ctx.fillRect(0, 0, width, height);
+
+            // Links
+            links.forEach(l => {
+                ctx.beginPath();
+                ctx.moveTo(l.s.x, l.s.y);
+                ctx.lineTo(l.t.x, l.t.y);
+                ctx.strokeStyle = "rgba(139, 92, 246, 0.35)";
+                ctx.lineWidth = 1.8;
+                ctx.stroke();
+            });
+
+            // Nodes
+            nodes.forEach(n => {
+                // Halo
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.r + 6, 0, Math.PI * 2);
+                ctx.fillStyle = n.mastery < 45 ? "rgba(244, 63, 94, 0.28)" : "rgba(16, 185, 129, 0.22)";
+                ctx.fill();
+
+                // 3D sphere body
+                ctx.beginPath();
+                ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+                const g = ctx.createRadialGradient(n.x - 6, n.y - 6, 2, n.x, n.y, n.r);
+                g.addColorStop(0, "#1E2644");
+                g.addColorStop(1, "#0A0D1A");
+                ctx.fillStyle = g;
+                ctx.fill();
+
+                ctx.strokeStyle = n.color;
+                ctx.lineWidth = 2.4;
+                ctx.stroke();
+
+                // Percentage
+                ctx.fillStyle = "#FFFFFF";
+                ctx.font = "bold 11px 'JetBrains Mono', monospace";
+                ctx.textAlign = "center";
+                ctx.textBaseline = "middle";
+                ctx.fillText(`${n.mastery}%`, n.x, n.y);
+
+                // Label
+                ctx.fillStyle = "#E2E8F0";
+                ctx.font = "600 11px 'Plus Jakarta Sans', sans-serif";
+                ctx.fillText(n.name, n.x, n.y + n.r + 14);
+            });
+
+            if ($("landing-section") && $("landing-section").style.display !== "none") {
+                requestAnimationFrame(renderLandingCanvas);
+            }
+        }
+
+        renderLandingCanvas();
+    }
+
+
+        function initTabNavigation() {
         document.querySelectorAll(".tab-btn").forEach(btn => {
             btn.addEventListener("click", () => {
                 const target = btn.dataset.target;
@@ -1015,6 +1319,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
        ══════════════════════════════════════════════════════════════════ */
 
     document.addEventListener("DOMContentLoaded", () => {
+        initLandingSection();
         initAuth();
         initTabNavigation();
         initDoubtSolver();
