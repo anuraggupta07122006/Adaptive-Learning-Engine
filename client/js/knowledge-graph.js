@@ -213,8 +213,8 @@
 
         drawGrid(ctx) {
             const gridSpacing = 40;
-            const size = 1200;
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.03)";
+            const size = 1400;
+            ctx.strokeStyle = "rgba(38, 48, 68, 0.4)";
             ctx.lineWidth = 1;
 
             ctx.beginPath();
@@ -237,15 +237,15 @@
                 const isConnectedToSelected = this.selectedNode &&
                     (this.selectedNode.id === s.id || this.selectedNode.id === t.id);
 
-                let strokeStyle = "rgba(148, 163, 184, 0.25)";
-                let lineWidth = 1.8;
+                let strokeStyle = "rgba(100, 116, 139, 0.35)";
+                let lineWidth = 1.5;
 
                 if (this.selectedNode) {
                     if (isConnectedToSelected) {
-                        strokeStyle = "#818cf8";
-                        lineWidth = 2.5;
+                        strokeStyle = "#2563EB";
+                        lineWidth = 2.2;
                     } else {
-                        strokeStyle = "rgba(148, 163, 184, 0.08)";
+                        strokeStyle = "rgba(38, 48, 68, 0.25)";
                     }
                 }
 
@@ -275,15 +275,15 @@
         }
 
         drawArrowHead(ctx, x, y, angle, color) {
-            const headLen = 8;
+            const headLen = 7;
             ctx.save();
             ctx.fillStyle = color;
             ctx.translate(x, y);
             ctx.rotate(angle);
             ctx.beginPath();
             ctx.moveTo(0, 0);
-            ctx.lineTo(-headLen, -headLen / 2);
-            ctx.lineTo(-headLen, headLen / 2);
+            ctx.lineTo(-headLen, -headLen / 2.2);
+            ctx.lineTo(-headLen, headLen / 2.2);
             ctx.closePath();
             ctx.fill();
             ctx.restore();
@@ -294,57 +294,54 @@
                 const isSelected = this.selectedNode && this.selectedNode.id === node.id;
                 const isHovered = this.hoveredNode && this.hoveredNode.id === node.id;
 
-                let fillColor = "#10b981"; // Mastered (green)
-                let strokeColor = "#34d399";
+                let strokeColor = "#059669"; // Mastered (Emerald)
                 if (node.masteryPct < 45) {
-                    fillColor = "#ef4444"; // Critical gap (red)
-                    strokeColor = "#f87171";
+                    strokeColor = "#DC2626"; // Critical gap (Crimson)
                 } else if (node.masteryPct < 75) {
-                    fillColor = "#f59e0b"; // Learning (amber)
-                    strokeColor = "#fbbf24";
+                    strokeColor = "#D97706"; // Learning (Amber)
                 }
 
                 // Halo glow if selected or hovered or prerequisite breach
                 if (isSelected || isHovered || node.hasPrereqBreach) {
                     ctx.beginPath();
-                    ctx.arc(node.x, node.y, node.radius + (node.hasPrereqBreach ? 8 : 6), 0, Math.PI * 2);
+                    ctx.arc(node.x, node.y, node.radius + (node.hasPrereqBreach ? 6 : 5), 0, Math.PI * 2);
                     ctx.fillStyle = node.hasPrereqBreach
-                        ? "rgba(239, 68, 68, 0.25)"
-                        : isSelected ? "rgba(99, 102, 241, 0.35)" : "rgba(255, 255, 255, 0.15)";
+                        ? "rgba(220, 38, 38, 0.2)"
+                        : isSelected ? "rgba(37, 99, 235, 0.25)" : "rgba(148, 163, 184, 0.12)";
                     ctx.fill();
                 }
 
                 // Node background circle
                 ctx.beginPath();
                 ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
-                ctx.fillStyle = "#1e2235";
+                ctx.fillStyle = "#111622";
                 ctx.fill();
 
                 // Border ring colored by mastery
-                ctx.lineWidth = isSelected ? 3.5 : 2.5;
-                ctx.strokeStyle = isSelected ? "#818cf8" : strokeColor;
+                ctx.lineWidth = isSelected ? 3 : 2;
+                ctx.strokeStyle = isSelected ? "#2563EB" : strokeColor;
                 ctx.stroke();
 
                 // Mastery percentage inside node
-                ctx.fillStyle = "#f8fafc";
-                ctx.font = "bold 11px Inter, sans-serif";
+                ctx.fillStyle = "#F1F5F9";
+                ctx.font = "600 11px 'JetBrains Mono', monospace";
                 ctx.textAlign = "center";
                 ctx.textBaseline = "middle";
                 ctx.fillText(`${node.masteryPct}%`, node.x, node.y - 1);
 
                 // Node Title label beneath circle
-                ctx.fillStyle = isSelected ? "#a5b4fc" : "#e2e8f0";
-                ctx.font = `${isSelected ? "600" : "500"} 11px Inter, sans-serif`;
+                ctx.fillStyle = isSelected ? "#F1F5F9" : "#94A3B8";
+                ctx.font = `${isSelected ? "600" : "500"} 11px 'IBM Plex Sans', sans-serif`;
                 ctx.fillText(this.truncate(node.name, 22), node.x, node.y + node.radius + 14);
 
-                // Small Prerequisite Breach Alert Icon
+                // Small Prerequisite Breach Alert Badge
                 if (node.hasPrereqBreach) {
-                    ctx.fillStyle = "#ef4444";
+                    ctx.fillStyle = "#DC2626";
                     ctx.beginPath();
                     ctx.arc(node.x + node.radius - 4, node.y - node.radius + 4, 6, 0, Math.PI * 2);
                     ctx.fill();
-                    ctx.fillStyle = "#ffffff";
-                    ctx.font = "bold 8px Inter, sans-serif";
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.font = "bold 8px 'JetBrains Mono', monospace";
                     ctx.fillText("!", node.x + node.radius - 4, node.y - node.radius + 4);
                 }
             }

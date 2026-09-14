@@ -766,7 +766,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
             const concepts = cognitiveModel.getConceptMasteryList();
             matrixContainer.innerHTML = concepts.map(c => {
                 const badgeClass = c.masteryPct >= 75 ? "mastered" : c.masteryPct >= 45 ? "learning" : "critical";
-                const barColor = c.masteryPct >= 75 ? "var(--color-success)" : c.masteryPct >= 45 ? "var(--color-warning)" : "var(--color-danger)";
+                const barColor = c.masteryPct >= 75 ? "var(--state-verified)" : c.masteryPct >= 45 ? "var(--state-amber)" : "var(--state-critical)";
                 return `
                     <div class="mastery-row">
                         <div class="mastery-row-top">
@@ -792,10 +792,10 @@ UNIT 4: FILE SYSTEMS & STORAGE
                     <div class="seq-item ${att.correct ? "correct" : "incorrect"}">
                         <div>
                             <strong>Attempt #${att.index}: ${att.concept}</strong>
-                            <div style="font-size:0.74rem;color:var(--text-muted);">${att.timeTaken}s response · Post-mastery: ${att.mastery}%</div>
+                            <div style="font-size:0.72rem;color:var(--text-muted);font-family:var(--font-mono);">${att.timeTaken}s response · Post-mastery: ${att.mastery}%</div>
                         </div>
-                        <span style="font-weight:700;color:${att.correct ? "var(--color-success)" : "var(--color-danger)"};">
-                            ${att.correct ? "CORRECT" : "GAP DETECTED"}
+                        <span style="font-weight:600;font-family:var(--font-mono);font-size:0.75rem;color:${att.correct ? "var(--state-verified)" : "var(--state-critical)"};">
+                            ${att.correct ? "VERIFIED" : "GAP DETECTED"}
                         </span>
                     </div>
                 `).join("");
