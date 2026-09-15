@@ -494,108 +494,371 @@ UNIT 4: FILE SYSTEMS & STORAGE
     }
 
     /* ══════════════════════════════════════════════════════════════════
-       STRATEGY ROADMAP FLOWCHART
+       STRATEGY ROADMAP — STUDYROADMAP.IN HIGH-YIELD ARCHITECTURE
        ══════════════════════════════════════════════════════════════════ */
+
+    function parseRoadmapModel(exam, strategy) {
+        const subjects = [];
+        const colorPalette = [
+            "#8b5cf6", // Violet
+            "#3b82f6", // Blue
+            "#10b981", // Emerald
+            "#f59e0b", // Amber
+            "#ec4899", // Pink
+            "#06b6d4"  // Cyan
+        ];
+
+        const syllabusText = (exam.syllabusText || "").trim();
+        const unitMatches = [...syllabusText.matchAll(/(?:UNIT|MODULE|CHAPTER|PART)s*(d+)s*[:\-–]\s*([^\n\r]+)/gi)];
+
+        if (unitMatches.length > 0) {
+            const rawBlocks = syllabusText.split(/(?:UNIT|MODULE|CHAPTER|PART)\s*\d+\s*[:\-–]\s*[^\n\r]+/gi);
+            unitMatches.forEach((m, idx) => {
+                const unitName = m[2].trim();
+                const unitContent = rawBlocks[idx + 1] || "";
+                const lines = unitContent.split("\n")
+                    .map(l => l.replace(/^[\s\-*•\d\.\)]+/, "").trim())
+                    .filter(l => l.length > 3);
+
+                subjects.push({
+                    id: "subject-" + idx,
+                    name: unitName.length > 3 ? unitName : "Unit " + (idx + 1),
+                    color: colorPalette[idx % colorPalette.length],
+                    topics: lines.map((line, tIdx) => ({
+                        id: "topic-u" + idx + "-t" + tIdx,
+                        title: line,
+                        subjectName: unitName,
+                        subjectColor: colorPalette[idx % colorPalette.length],
+                        weightStars: tIdx === 0 || tIdx === 1 ? 5 : tIdx === 2 ? 4 : 3,
+                        highPriority: tIdx < 2
+                    }))
+                });
+            });
+        }
+
+        if (subjects.length === 0) {
+            if (strategy.milestones && strategy.milestones.length > 0) {
+                strategy.milestones.forEach((ms, idx) => {
+                    subjects.push({
+                        id: "subject-" + idx,
+                        name: ms.title.replace(/^Phase\s*\d+\s*[:\-–]\s*/i, ""),
+                        color: colorPalette[idx % colorPalette.length],
+                        topics: []
+                    });
+                });
+            } else {
+                subjects.push({
+                    id: "subject-0",
+                    name: exam.examName || "Core Curriculum",
+                    color: colorPalette[0],
+                    topics: []
+                });
+            }
+
+            const schedule = strategy.schedule || [];
+            schedule.forEach((day, dIdx) => {
+                const sIdx = dIdx % subjects.length;
+                subjects[sIdx].topics.push({
+                    id: "topic-s" + sIdx + "-d" + dIdx,
+                    title: day.topic || "Day " + (dIdx + 1) + " Focus",
+                    tasks: day.tasks || [],
+                    subjectName: subjects[sIdx].name,
+                    subjectColor: subjects[sIdx].color,
+                    weightStars: dIdx < 2 ? 5 : dIdx < 4 ? 4 : 3,
+                    highPriority: dIdx < 2
+                });
+            });
+        }
+
+        const allTopics = [];
+        subjects.forEach((s, sIdx) => {
+            s.topics.forEach((t, tIdx) => {
+                allTopics.push({
+                    ...t,
+                    subjectIdx: sIdx,
+                    topicIdx: tIdx
+                });
+            });
+        });
+
+        const highestYieldTopics = [...allTopics]
+            .sort((a, b) => b.weightStars - a.weightStars)
+            .slice(0, 6);
+
+        const durationNum = parseFloat(exam.duration) || 18;
+        const totalDays = (strategy.schedule && strategy.schedule.length > 0) 
+            ? strategy.schedule.length 
+            : Math.max(1, Math.ceil(durationNum / 3.5));
+
+        return { subjects, allTopics, highestYieldTopics, totalDays };
+    }
+
+    let currentRoadmapModel = null;
 
     function renderStrategyFlowchart(strategy) {
         const container = $("tree-flowchart-container");
         const tipsSection = $("tips-section");
         if (!container || !selectedExam) return;
 
-        if (!strategy || !strategy.milestones) {
+        if (!strategy) {
             container.innerHTML = `<div class="empty-state"><p>No strategy data found for this exam.</p></div>`;
             return;
         }
+
+        const examId = selectedExam._id;
+        const model = parseRoadmapModel(selectedExam, strategy);
+        currentRoadmapModel = model;
+
+        const savedStates = {};
+        try {
+            const raw = localStorage.getItem(`prepos-roadmap-tasks-${examId}`);
+            if (raw) Object.assign(savedStates, JSON.parse(raw));
+        } catch {}
+
+        model.allTopics.forEach(t => {
+            t.checked = savedStates[t.id] === true;
+        });
+        model.subjects.forEach(s => {
+            s.topics.forEach(t => {
+                t.checked = savedStates[t.id] === true;
+            });
+        });
+        model.highestYieldTopics.forEach(t => {
+            t.checked = savedStates[t.id] === true;
+        });
 
         if ($("strategy-summary")) {
             $("strategy-summary").innerText = strategy.summary || "Your step-by-step roadmap to mastery.";
         }
 
-        const examId = selectedExam._id;
-        const savedStates = {};
-        try {
-            const raw = localStorage.getItem(`exam-tasks-${examId}`);
-            if (raw) Object.assign(savedStates, JSON.parse(raw));
-        } catch {}
+        const milestones = strategy.milestones || [
+            { title: "Phase 1: Foundation & High-Yield Core", description: "Build first-principles understanding of essential formulas and definitions." },
+            { title: "Phase 2: Numerical Practice & Problem Solving", description: "Work through PYQs, standard problem patterns, and edge-case behaviors." },
+            { title: "Phase 3: Timed Mocks & Speed Calibration", description: "Complete full syllabus drills under timed testing constraints." }
+        ];
 
         let html = `
-            <div class="tree-root-card">
-                <div class="tree-root-title">${selectedExam.examName}</div>
-                <div style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:8px;">${selectedExam.duration}h Structured Adaptive Roadmap</div>
-                <div class="tree-progress-track">
-                    <div class="tree-progress-fill" id="tree-overall-progress-bar"></div>
+            <!-- 1. Disclaimer Banner -->
+            <div class="sr-disclaimer">
+                <svg class="sr-disclaimer-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+                </svg>
+                <div class="sr-disclaimer-text">
+                    <strong>Disclaimer:</strong> StudyRoadmap™ adaptive trajectory is a high-yield preparation aid. Always adjust daily pacing based on your real-time concept mastery.
                 </div>
-                <div class="tree-progress-label" id="tree-overall-progress-text">0% completed</div>
             </div>
-            <div class="tree-connector-v"></div>
-            <div class="tree-branches">
-        `;
 
-        const schedule = strategy.schedule || [];
-        const milestones = strategy.milestones || [];
-        const perMilestone = Math.ceil(schedule.length / Math.max(1, milestones.length));
-
-        milestones.forEach((ms, mIdx) => {
-            const daySlice = schedule.slice(mIdx * perMilestone, (mIdx + 1) * perMilestone);
-            const milestoneId = `milestone-${examId}-${mIdx}`;
-
-            html += `
-                <div class="tree-branch-node">
-                    <div class="tree-branch-connector"></div>
-                    <div class="milestone-card" id="${milestoneId}">
-                        <div class="milestone-card-header">
-                            <span class="milestone-card-badge">Phase ${mIdx + 1}</span>
-                            <span class="milestone-progress-indicator">0%</span>
+            <!-- 2. Exam Overview Hero Card -->
+            <div class="sr-hero-card">
+                <div class="sr-hero-top">
+                    <div class="sr-hero-icon-box">🎓</div>
+                    <div class="sr-hero-info">
+                        <h2 class="sr-hero-title">${selectedExam.examName}</h2>
+                        <p class="sr-hero-desc">Personalized high-yield cognitive roadmap sequenced by exam weight and prerequisite chains.</p>
+                        <div class="sr-hero-pills">
+                            <span class="sr-pill">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                ${selectedExam.duration} Hours
+                            </span>
+                            <span class="sr-pill">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                ${model.totalDays} Days
+                            </span>
+                            <span class="sr-pill">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                                ${model.allTopics.length} highest-weight topics
+                            </span>
+                            <span class="sr-pill sr-pill-accent">
+                                ✦ High-Yield Optimized
+                            </span>
                         </div>
-                        <div class="milestone-card-title">${ms.title}</div>
-                        <div class="milestone-card-desc">${ms.description}</div>
-                        <div class="milestone-mini-progress-track">
-                            <div class="milestone-mini-progress-fill"></div>
+                        <div class="sr-hero-actions">
+                            <button type="button" class="sr-btn-share" onclick="window.shareRoadmapLink(this)">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.43.615.74.937.31.322.673.586.986.748l4.837 3.125a2.25 2.25 0 01.447 1.634v.626a.75.75 0 01-.75.75h-2.5a.75.75 0 01-.75-.75v-1.803a2.083 2.083 0 01-.447-1.27l.795-1.23a1.994 1.994 0 00-.448-2.522l-3.5-2.5a1.994 1.994 0 00-2.522.448l-1.5 1.5a2.25 2.25 0 102.186 2.186m5.25-4.499v5.142m0-5.142l-5.25 4.5-5.25-4.5"/></svg>
+                                <span class="sr-btn-text">Share roadmap</span>
+                            </button>
+                            <button type="button" class="sr-btn-print" onclick="window.printRoadmap()">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                                Print
+                            </button>
                         </div>
                     </div>
-                    <div class="day-nodes-list">
-            `;
+                </div>
+            </div>
 
-            daySlice.forEach((day, dIdx) => {
-                const dayId = `day-${mIdx}-${dIdx}`;
-                html += `
-                    <div class="day-node-card" id="${dayId}">
-                        <div class="day-node-header">
-                            <span class="day-node-title">${day.day}</span>
-                            <span class="day-node-duration">${day.durationHours}h</span>
+            <!-- 3. Start Here — Highest Yield Card -->
+            <div class="sr-highest-yield-card">
+                <div class="sr-card-header">
+                    <h3 class="sr-card-title">Start here — highest yield for ${selectedExam.examName}</h3>
+                    <p class="sr-card-subtitle">These top topics carry the most weight in recent exams. Master these first before moving to other chapters.</p>
+                </div>
+                <div class="sr-yield-list">
+                    ${model.highestYieldTopics.map((topic, idx) => `
+                        <div class="sr-yield-item ${topic.checked ? 'completed' : ''}" data-topic-id="${topic.id}">
+                            <input type="checkbox" id="yield-cb-${topic.id}" class="sr-checkbox" 
+                                data-topic-id="${topic.id}" ${topic.checked ? 'checked' : ''} 
+                                onchange="window.toggleRoadmapTopic(this)">
+                            <span class="sr-rank">#${idx + 1}</span>
+                            <div class="sr-yield-content">
+                                <label for="yield-cb-${topic.id}" class="sr-topic-title" style="cursor:pointer;">${topic.title}</label>
+                                <span class="sr-topic-subject-badge" style="background:${topic.subjectColor}20; color:${topic.subjectColor}; border:1px solid ${topic.subjectColor}40;">${topic.subjectName}</span>
+                            </div>
+                            <div class="sr-stars" title="${topic.weightStars} of 5 weight">
+                                ${'★'.repeat(topic.weightStars) + '☆'.repeat(5 - topic.weightStars)}
+                            </div>
+                            <button type="button" class="sr-btn-notes" onclick="window.openTopicNotes('${topic.title.replace(/'/g, "\\'")}')">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+                                <span>Open notes</span>
+                            </button>
                         </div>
-                        <div class="day-node-topic">${day.topic}</div>
-                        <ul class="day-node-tasks">
-                `;
+                    `).join('')}
+                </div>
+            </div>
 
-                (day.tasks || []).forEach((task, tIdx) => {
-                    const taskId = `task-${mIdx}-${dIdx}-${tIdx}`;
-                    const isChecked = savedStates[`${examId}-${taskId}`] === true;
-                    html += `
-                        <li class="day-node-task-item${isChecked ? " checked" : ""}">
-                            <input type="checkbox" id="${taskId}"
-                                data-milestone="${milestoneId}"
-                                data-task-id="${examId}-${taskId}"
-                                ${isChecked ? "checked" : ""}
-                                onchange="window.toggleRoadmapTask(this)">
-                            <label for="${taskId}">${task}</label>
-                        </li>
-                    `;
-                });
+            <!-- 4. Progress Overview Card -->
+            <div class="sr-progress-card">
+                <div class="sr-progress-header">
+                    <h3 class="sr-progress-title">Progress Overview — ${selectedExam.examName}</h3>
+                    <span class="sr-streak-pill">🔥 3-Day Retention Streak</span>
+                </div>
+                <div class="sr-overall-progress-group">
+                    <div class="sr-progress-meta">
+                        <span id="sr-overall-topics-text" class="sr-meta-text">0 / ${model.allTopics.length} topics completed</span>
+                        <span id="sr-overall-pct-text" class="sr-meta-pct">0%</span>
+                    </div>
+                    <div class="sr-progress-track">
+                        <div id="sr-overall-progress-fill" class="sr-progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="sr-subject-progress-grid">
+                    ${model.subjects.map((sub) => `
+                        <div class="sr-subject-progress-item" data-subject-id="${sub.id}">
+                            <div class="sr-sub-meta">
+                                <div class="sr-sub-name-group">
+                                    <span class="sr-dot" style="background:${sub.color};"></span>
+                                    <span class="sr-sub-name">${sub.name}</span>
+                                </div>
+                                <span id="sr-sub-pct-${sub.id}" class="sr-sub-pct">0% (${sub.topics.length} topics)</span>
+                            </div>
+                            <div class="sr-sub-track">
+                                <div id="sr-sub-fill-${sub.id}" class="sr-sub-fill" style="background:${sub.color}; width: 0%;"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
 
-                html += `</ul></div>`;
-            });
+            <!-- 5. Phase Plan Stepper Card -->
+            <div class="sr-phase-card">
+                <div class="sr-card-header">
+                    <h3 class="sr-card-title">Phase plan</h3>
+                    <p class="sr-card-subtitle">How to sequence this timeline: foundation, then practice, then mocks.</p>
+                </div>
+                <div class="sr-phase-list">
+                    ${milestones.map((ms, idx) => `
+                        <div class="sr-phase-item">
+                            <div class="sr-phase-badge">${idx + 1}</div>
+                            <div class="sr-phase-body">
+                                <div class="sr-phase-heading">${ms.title}</div>
+                                <p class="sr-phase-desc">${ms.description}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
 
-            html += `</div></div>`;
-        });
+            <!-- 6. By Subject — Heaviest Topics First Section -->
+            <div class="sr-subjects-section">
+                <div class="sr-section-toolbar">
+                    <h3 class="sr-section-title">By subject — heaviest topics first</h3>
+                    <div class="sr-toolbar-actions">
+                        <button type="button" class="sr-action-btn sr-btn-highlight" onclick="window.studyNextIncompleteTopic()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            Study next incomplete
+                        </button>
+                        <button type="button" id="sr-toggle-all-btn" class="sr-action-btn" onclick="window.toggleAllRoadmapSubjects()">
+                            Collapse All
+                        </button>
+                        <button type="button" class="sr-action-btn" onclick="window.printRoadmap()">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                            Print
+                        </button>
+                    </div>
+                </div>
 
-        html += `</div>`;
+                <div class="sr-accordions-list">
+                    ${model.subjects.map((sub, sIdx) => `
+                        <div class="sr-accordion-item ${sIdx === 0 || sIdx === 1 ? 'is-open' : ''}" id="accordion-${sub.id}">
+                            <button type="button" class="sr-accordion-trigger" onclick="window.toggleSubjectAccordion('accordion-${sub.id}')">
+                                <div class="sr-trigger-left">
+                                    <span class="sr-sub-dot" style="background:${sub.color};"></span>
+                                    <span class="sr-sub-title">${sub.name}</span>
+                                    <span class="sr-tag-pill">${sub.topics.length} topics</span>
+                                </div>
+                                <div class="sr-trigger-right">
+                                    <span class="sr-meta-tag">${sub.topics.filter(t => t.highPriority).length} high-priority</span>
+                                    <svg class="sr-chevron w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                </div>
+                            </button>
+                            <div class="sr-accordion-panel">
+                                <div class="sr-topics-grid">
+                                    ${sub.topics.map((t, tIdx) => `
+                                        <div class="sr-topic-card ${t.checked ? 'completed' : ''}" id="topic-card-${t.id}" data-topic-id="${t.id}">
+                                            <div class="sr-topic-card-top">
+                                                <div class="sr-topic-check-wrap">
+                                                    <input type="checkbox" id="sub-cb-${t.id}" class="sr-checkbox" 
+                                                        data-topic-id="${t.id}" ${t.checked ? 'checked' : ''} 
+                                                        onchange="window.toggleRoadmapTopic(this)">
+                                                    <span class="sr-rank">#${tIdx + 1}</span>
+                                                </div>
+                                                <div class="sr-stars" title="${t.weightStars} of 5 weight">
+                                                    ${'★'.repeat(t.weightStars) + '☆'.repeat(5 - t.weightStars)}
+                                                </div>
+                                            </div>
+                                            <div class="sr-topic-card-body">
+                                                <label for="sub-cb-${t.id}" class="sr-topic-title" style="cursor:pointer;">${t.title}</label>
+                                                ${t.tasks && t.tasks.length ? `
+                                                    <ul class="sr-topic-tasks">
+                                                        ${t.tasks.map(tsk => `<li>${tsk}</li>`).join('')}
+                                                    </ul>
+                                                ` : ''}
+                                            </div>
+                                            <div class="sr-topic-card-footer">
+                                                <span class="sr-priority-badge" style="color:${sub.color}; background:${sub.color}15;">Priority in ${sub.name}</span>
+                                                <button type="button" class="sr-btn-notes-sm" onclick="window.openTopicNotes('${t.title.replace(/'/g, "\\'")}')">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
+                                                    <span>Open notes</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <!-- 7. Timeline Adjuster Chips -->
+            <div class="sr-timeline-adjuster">
+                <div class="sr-timeline-title">Adjust your timeline:</div>
+                <div class="sr-timeline-chips">
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(12)">12 Hours →</button>
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(24)">1 Day →</button>
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(72)">3 Days →</button>
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(168)">1 Week →</button>
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(720)">1 Month →</button>
+                    <button type="button" class="sr-chip" onclick="window.adjustRoadmapTimeline(2160)">3 Months →</button>
+                </div>
+            </div>
+        `;
+
         container.innerHTML = html;
 
         // Tips
         if (tipsSection && strategy.tips && strategy.tips.length > 0) {
             tipsSection.innerHTML = `
-                <div class="tips-section">
+                <div class="tips-section" style="margin-top:18px;">
                     <h4>High-Yield AI Recommendations</h4>
                     <div class="tips-list">
                         ${strategy.tips.map(tip => `
@@ -614,52 +877,170 @@ UNIT 4: FILE SYSTEMS & STORAGE
         updateRoadmapProgress();
     }
 
-    window.toggleRoadmapTask = function(checkbox) {
-        const li = checkbox.closest(".day-node-task-item");
-        const taskKey = checkbox.dataset.taskId;
+    /* ── Roadmap Interactivity Handlers ── */
 
-        if (checkbox.checked) li.classList.add("checked");
-        else li.classList.remove("checked");
+    window.toggleRoadmapTopic = function(checkbox) {
+        const topicId = checkbox.dataset.topicId;
+        const isChecked = checkbox.checked;
 
+        // Synchronize all checkboxes matching this topic (both in Start Here & Accordion)
+        document.querySelectorAll(`input[data-topic-id="${topicId}"]`).forEach(cb => {
+            cb.checked = isChecked;
+        });
+
+        // Toggle completed class on cards
+        document.querySelectorAll(`[data-topic-id="${topicId}"]`).forEach(el => {
+            if (isChecked) el.classList.add("completed");
+            else el.classList.remove("completed");
+        });
+
+        // Save to localStorage
         if (selectedExam) {
             const examId = selectedExam._id;
             let saved = {};
-            try { saved = JSON.parse(localStorage.getItem(`exam-tasks-${examId}`) || "{}"); } catch {}
-            saved[taskKey] = checkbox.checked;
-            localStorage.setItem(`exam-tasks-${examId}`, JSON.stringify(saved));
+            try { saved = JSON.parse(localStorage.getItem(`prepos-roadmap-tasks-${examId}`) || "{}"); } catch {}
+            saved[topicId] = isChecked;
+            localStorage.setItem(`prepos-roadmap-tasks-${examId}`, JSON.stringify(saved));
         }
 
         updateRoadmapProgress();
         refreshAnalyticsView();
     };
 
+    window.toggleRoadmapTask = window.toggleRoadmapTopic; // Backwards-compatible alias
+
+    window.toggleSubjectAccordion = function(accordionId) {
+        const item = $(accordionId);
+        if (item) {
+            item.classList.toggle("is-open");
+        }
+    };
+
+    window.toggleAllRoadmapSubjects = function() {
+        const items = document.querySelectorAll(".sr-accordion-item");
+        const btn = $("sr-toggle-all-btn");
+        if (!items.length) return;
+
+        const anyClosed = Array.from(items).some(i => !i.classList.contains("is-open"));
+        items.forEach(i => {
+            if (anyClosed) i.classList.add("is-open");
+            else i.classList.remove("is-open");
+        });
+
+        if (btn) btn.innerText = anyClosed ? "Collapse All" : "Expand All";
+    };
+
+    window.studyNextIncompleteTopic = function() {
+        const nextCb = document.querySelector(".sr-topics-grid input[type='checkbox']:not(:checked)");
+        if (!nextCb) {
+            showToast("All topics completed! Outstanding preparation! 🎉", "success");
+            return;
+        }
+
+        const card = nextCb.closest(".sr-topic-card");
+        const accordion = nextCb.closest(".sr-accordion-item");
+
+        if (accordion && !accordion.classList.contains("is-open")) {
+            accordion.classList.add("is-open");
+        }
+
+        if (card) {
+            card.scrollIntoView({ behavior: "smooth", block: "center" });
+            card.classList.add("highlight-pulse");
+            setTimeout(() => card.classList.remove("highlight-pulse"), 2500);
+
+            const title = card.querySelector(".sr-topic-title")?.innerText || "Next High-Yield Concept";
+            showToast(`Focus Drill: ${title}`, "info");
+        }
+    };
+
+    window.shareRoadmapLink = function(btn) {
+        const url = window.location.href;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(url).then(() => {
+                showToast("Roadmap link copied to clipboard!", "success");
+                if (btn) {
+                    const textEl = btn.querySelector(".sr-btn-text");
+                    if (textEl) {
+                        const original = textEl.innerText;
+                        textEl.innerText = "Copied!";
+                        setTimeout(() => textEl.innerText = original, 2000);
+                    }
+                }
+            }).catch(() => {
+                showToast("Share URL: " + url, "info");
+            });
+        } else {
+            showToast("Share URL: " + url, "info");
+        }
+    };
+
+    window.printRoadmap = function() {
+        window.print();
+    };
+
+    window.openTopicNotes = function(topicTitle) {
+        showToast(`Loading Doubt Solver & Notes for: ${topicTitle}`, "info");
+        showPanel("page-doubt");
+        const doubtInput = $("doubt-input");
+        if (doubtInput) {
+            doubtInput.value = `Explain the core concepts, high-yield exam patterns, and numerical formulas for: "${topicTitle}" step-by-step.`;
+            doubtInput.focus();
+        }
+    };
+
+    window.adjustRoadmapTimeline = function(hours) {
+        if (!selectedExam) return;
+        selectedExam.duration = hours;
+        showToast(`Roadmap re-calculated for ${hours < 24 ? hours + ' hours' : Math.round(hours/24) + ' days'}!`, "success");
+
+        if ($("active-exam-duration")) {
+            $("active-exam-duration").innerText = `${hours}h Study Plan`;
+        }
+
+        let strategy = null;
+        try {
+            strategy = typeof selectedExam.strategy === "string" ? JSON.parse(selectedExam.strategy) : selectedExam.strategy;
+        } catch {}
+
+        renderStrategyFlowchart(strategy);
+    };
+
     function updateRoadmapProgress() {
-        const cbs = Array.from(document.querySelectorAll("#tree-flowchart-container input[type='checkbox']"));
-        if (!cbs.length) return;
+        const container = $("tree-flowchart-container");
+        if (!container || !currentRoadmapModel) return;
 
-        const checked = cbs.filter(cb => cb.checked).length;
-        const pct = Math.round((checked / cbs.length) * 100);
+        const allCbs = Array.from(container.querySelectorAll(".sr-topics-grid input[type='checkbox']"));
+        const total = allCbs.length;
+        const checked = allCbs.filter(cb => cb.checked).length;
+        const pct = total > 0 ? Math.round((checked / total) * 100) : 0;
 
-        const bar = $("tree-overall-progress-bar");
-        const text = $("tree-overall-progress-text");
-        if (bar) bar.style.width = `${pct}%`;
-        if (text) text.innerText = `${pct}% completed`;
+        // Update overall progress bar & texts
+        const fill = $("sr-overall-progress-fill");
+        const metaText = $("sr-overall-topics-text");
+        const pctText = $("sr-overall-pct-text");
 
+        if (fill) fill.style.width = `${pct}%`;
+        if (metaText) metaText.innerText = `${checked} / ${total} topics completed`;
+        if (pctText) pctText.innerText = `${pct}%`;
+
+        // Backwards compatibility for dashboard metrics
+        if ($("tree-overall-progress-bar")) $("tree-overall-progress-bar").style.width = `${pct}%`;
+        if ($("tree-overall-progress-text")) $("tree-overall-progress-text").innerText = `${pct}% completed`;
         if ($("metric-roadmap-pct")) $("metric-roadmap-pct").innerText = `${pct}%`;
 
-        // Milestone cards update
-        document.querySelectorAll(".milestone-card").forEach(card => {
-            const msId = card.id;
-            const msCbs = cbs.filter(cb => cb.dataset.milestone === msId);
-            if (!msCbs.length) return;
+        // Update Subject progress bars
+        currentRoadmapModel.subjects.forEach(sub => {
+            const subCbs = Array.from(container.querySelectorAll(`#accordion-${sub.id} .sr-topics-grid input[type='checkbox']`));
+            const subTotal = subCbs.length;
+            const subChecked = subCbs.filter(cb => cb.checked).length;
+            const subPct = subTotal > 0 ? Math.round((subChecked / subTotal) * 100) : 0;
 
-            const msChecked = msCbs.filter(cb => cb.checked).length;
-            const msPct = Math.round((msChecked / msCbs.length) * 100);
+            const subFill = $(`sr-sub-fill-${sub.id}`);
+            const subPctLabel = $(`sr-sub-pct-${sub.id}`);
 
-            const ind = card.querySelector(".milestone-progress-indicator");
-            const fill = card.querySelector(".milestone-mini-progress-fill");
-            if (ind) ind.innerText = `${msPct}%`;
-            if (fill) fill.style.width = `${msPct}%`;
+            if (subFill) subFill.style.width = `${subPct}%`;
+            if (subPctLabel) subPctLabel.innerText = `${subPct}% (${subChecked}/${subTotal} topics)`;
         });
     }
 
