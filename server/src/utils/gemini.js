@@ -12,7 +12,7 @@ const getGroq = () => {
     return groqClient;
 };
 
-const MODEL = "llama-3.3-70b-versatile"; // 14,400 req/day free — 24x7 reliable
+const MODEL = process.env.GROQ_MODEL || "groq/compound-mini"; // Active, ultra-fast Groq model
 
 /**
  * Generates a structured Study Strategy JSON based on exam details and syllabus
@@ -136,15 +136,17 @@ Syllabus/Context:
 ${syllabusText ? syllabusText.substring(0, 3000) : "General computer science and engineering topics"}
 """
 
-Generate exactly ${numQuestions} high-quality multiple choice questions. Return ONLY valid JSON array (no markdown fences):
-[
-  {
-    "question": "Clear, specific question text?",
-    "options": ["A) Option text", "B) Option text", "C) Option text", "D) Option text"],
-    "answer": "A",
-    "explanation": "Why this answer is correct — explain the concept clearly."
-  }
-]
+Generate exactly ${numQuestions} high-quality multiple choice questions. Return ONLY valid JSON matching this schema:
+{
+  "questions": [
+    {
+      "question": "Clear, specific question text?",
+      "options": ["A) Option text", "B) Option text", "C) Option text", "D) Option text"],
+      "answer": "A",
+      "explanation": "Why this answer is correct — explain the concept clearly."
+    }
+  ]
+}
 
 Requirements:
 - Questions must be directly from the syllabus content provided

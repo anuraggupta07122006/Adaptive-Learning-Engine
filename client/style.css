@@ -2977,6 +2977,204 @@ textarea.form-control {
     color: var(--text-faint);
 }
 
+/* ─── Doubt Solver Generated Notes Styling ─── */
+.doubt-notes-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: fadeIn 0.25s ease-out;
+}
+
+.doubt-notes-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 14px;
+    margin-bottom: 4px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.doubt-notes-title-group h3 {
+    font-size: 1.18rem;
+    font-weight: 800;
+    color: var(--text-main);
+    margin: 0 0 6px 0;
+}
+
+.doubt-notes-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.doubt-notes-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.doubt-btn-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(139, 92, 246, 0.12);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    cursor: pointer;
+    transition: all var(--transition);
+}
+
+.doubt-btn-action:hover {
+    background: rgba(139, 92, 246, 0.25);
+    border-color: rgba(139, 92, 246, 0.5);
+    transform: translateY(-1px);
+}
+
+.notes-card-section {
+    background: var(--bg-inset);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    transition: border-color var(--transition);
+}
+
+.notes-card-section:hover {
+    border-color: rgba(139, 92, 246, 0.3);
+}
+
+.notes-section-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #c4b5fd;
+    margin-bottom: 10px;
+}
+
+.notes-section-head svg {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: var(--accent-violet);
+}
+
+.notes-core-text {
+    font-size: 0.88rem;
+    line-height: 1.65;
+    color: var(--text-main);
+}
+
+.notes-formula-box {
+    background: rgba(0, 0, 0, 0.35);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-left: 3px solid var(--accent-violet);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    color: #a7f3d0;
+    line-height: 1.6;
+    margin: 8px 0 12px 0;
+    white-space: pre-wrap;
+    overflow-x: auto;
+}
+
+.notes-bullet-list {
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.notes-bullet-list li {
+    font-size: 0.85rem;
+    line-height: 1.55;
+    color: var(--text-main);
+    position: relative;
+    padding-left: 18px;
+}
+
+.notes-bullet-list li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: var(--accent-violet);
+    font-weight: bold;
+}
+
+.notes-pyq-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+}
+
+.notes-pyq-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--accent-amber);
+    margin-bottom: 8px;
+}
+
+.notes-recall-item {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 8px;
+}
+
+.notes-recall-q {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-main);
+    flex: 1;
+}
+
+.btn-reveal-ans {
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: var(--radius-sm);
+    background: rgba(139, 92, 246, 0.15);
+    color: #c4b5fd;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    cursor: pointer;
+    transition: all var(--transition);
+    white-space: nowrap;
+}
+
+.btn-reveal-ans:hover {
+    background: rgba(139, 92, 246, 0.3);
+}
+
+.notes-recall-ans {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-subtle);
+    font-size: 0.83rem;
+    line-height: 1.5;
+    color: #a7f3d0;
+}
+
+.notes-recall-item.revealed .notes-recall-ans {
+    display: block;
+}
+
 /* Markdown Rendering */
 .md-content {
     line-height: 1.65;
