@@ -703,13 +703,6 @@ UNIT 4: FILE SYSTEMS & STORAGE
                                 <label for="yield-cb-${topic.id}" class="sr-topic-title" style="cursor:pointer;">${topic.title}</label>
                                 <span class="sr-topic-subject-badge" style="background:${topic.subjectColor}20; color:${topic.subjectColor}; border:1px solid ${topic.subjectColor}40;">${topic.subjectName}</span>
                             </div>
-                            <div class="sr-stars" title="${topic.weightStars} of 5 weight">
-                                ${'★'.repeat(topic.weightStars) + '☆'.repeat(5 - topic.weightStars)}
-                            </div>
-                            <button type="button" class="sr-btn-notes" onclick="window.openTopicNotes('${topic.title.replace(/'/g, "\\'")}', '${(topic.subjectName || '').replace(/'/g, "\\'")}')">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
-                                <span>Open notes</span>
-                            </button>
                         </div>
                     `).join('')}
                 </div>
@@ -811,9 +804,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
                                                         onchange="window.toggleRoadmapTopic(this)">
                                                     <span class="sr-rank">#${tIdx + 1}</span>
                                                 </div>
-                                                <div class="sr-stars" title="${t.weightStars} of 5 weight">
-                                                    ${'★'.repeat(t.weightStars) + '☆'.repeat(5 - t.weightStars)}
-                                                </div>
+                                                <span class="sr-priority-badge" style="color:${sub.color}; background:${sub.color}15;">Priority in ${sub.name}</span>
                                             </div>
                                             <div class="sr-topic-card-body">
                                                 <label for="sub-cb-${t.id}" class="sr-topic-title" style="cursor:pointer;">${t.title}</label>
@@ -822,13 +813,6 @@ UNIT 4: FILE SYSTEMS & STORAGE
                                                         ${t.tasks.map(tsk => `<li>${tsk}</li>`).join('')}
                                                     </ul>
                                                 ` : ''}
-                                            </div>
-                                            <div class="sr-topic-card-footer">
-                                                <span class="sr-priority-badge" style="color:${sub.color}; background:${sub.color}15;">Priority in ${sub.name}</span>
-                                                <button type="button" class="sr-btn-notes-sm" onclick="window.openTopicNotes('${t.title.replace(/'/g, "\\'")}', '${(sub.name || '').replace(/'/g, "\\'")}')">
-                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
-                                                    <span>Open notes</span>
-                                                </button>
                                             </div>
                                         </div>
                                     `).join('')}
