@@ -509,7 +509,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
         ];
 
         const syllabusText = (exam.syllabusText || "").trim();
-        const unitMatches = [...syllabusText.matchAll(/(?:UNIT|MODULE|CHAPTER|PART)s*(d+)s*[:\-–]\s*([^\n\r]+)/gi)];
+        const unitMatches = [...syllabusText.matchAll(/(?:UNIT|MODULE|CHAPTER|PART)\s*(\d+)\s*[:\-–]\s*([^\n\r]+)/gi)];
 
         if (unitMatches.length > 0) {
             const rawBlocks = syllabusText.split(/(?:UNIT|MODULE|CHAPTER|PART)\s*\d+\s*[:\-–]\s*[^\n\r]+/gi);
@@ -1813,17 +1813,12 @@ Key Academic Equations & Relations for ${title}:
                 `;
                 submitBtn.disabled = false;
 
-                let answerText = res?.data?.answer;
-                if (!answerText && window.apiGateway?.generateAcademicDoubtSolution) {
-                    answerText = window.apiGateway.generateAcademicDoubtSolution(doubt);
-                }
-
-                if (answerText) {
+                if (res.success && res.data && res.data.answer) {
                     container.innerHTML = `
                         <div style="border-bottom:1px solid var(--border-color);padding-bottom:14px;margin-bottom:18px;">
-                            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);">Conceptual Resolution</h3>
+                            <h3 style="font-size:1.1rem;font-weight:800;">Conceptual Resolution</h3>
                         </div>
-                        ${formatMarkdown(answerText)}
+                        ${formatMarkdown(res.data.answer)}
                     `;
                     doubtInput.value = "";
                     showToast("Solution generated!", "success");
@@ -1831,21 +1826,11 @@ Key Academic Equations & Relations for ${title}:
                     container.innerHTML = `<div class="empty-state"><p>Could not resolve doubt. Please retry.</p></div>`;
                     showToast(res.message || "Failed to solve doubt.", "danger");
                 }
-            } catch (err) {
-                submitBtn.innerHTML = `
-                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                    Solve Doubt with AI
-                `;
+            } catch {
+                submitBtn.innerHTML = "Solve Doubt with AI";
                 submitBtn.disabled = false;
-                const fallbackAnswer = window.apiGateway?.generateAcademicDoubtSolution ? window.apiGateway.generateAcademicDoubtSolution(doubt) : "Analyzing principles...";
-                container.innerHTML = `
-                    <div style="border-bottom:1px solid var(--border-color);padding-bottom:14px;margin-bottom:18px;">
-                        <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);">Conceptual Resolution</h3>
-                    </div>
-                    ${formatMarkdown(fallbackAnswer)}
-                `;
-                doubtInput.value = "";
-                showToast("Solution generated via Cognitive Engine!", "success");
+                container.innerHTML = `<div class="empty-state"><p>Network error while resolving doubt.</p></div>`;
+                showToast("Network error occurred.", "danger");
             }
         });
     }
