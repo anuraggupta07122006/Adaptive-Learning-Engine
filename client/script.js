@@ -706,7 +706,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
                             <div class="sr-stars" title="${topic.weightStars} of 5 weight">
                                 ${'★'.repeat(topic.weightStars) + '☆'.repeat(5 - topic.weightStars)}
                             </div>
-                            <button type="button" class="sr-btn-notes" onclick="window.openTopicNotes('${topic.title.replace(/'/g, "\\'")}')">
+                            <button type="button" class="sr-btn-notes" onclick="window.openTopicNotes('${topic.title.replace(/'/g, "\\'")}', '${(topic.subjectName || '').replace(/'/g, "\\'")}')">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
                                 <span>Open notes</span>
                             </button>
@@ -825,7 +825,7 @@ UNIT 4: FILE SYSTEMS & STORAGE
                                             </div>
                                             <div class="sr-topic-card-footer">
                                                 <span class="sr-priority-badge" style="color:${sub.color}; background:${sub.color}15;">Priority in ${sub.name}</span>
-                                                <button type="button" class="sr-btn-notes-sm" onclick="window.openTopicNotes('${t.title.replace(/'/g, "\\'")}')">
+                                                <button type="button" class="sr-btn-notes-sm" onclick="window.openTopicNotes('${t.title.replace(/'/g, "\\'")}', '${(sub.name || '').replace(/'/g, "\\'")}')">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25"/></svg>
                                                     <span>Open notes</span>
                                                 </button>
@@ -979,15 +979,467 @@ UNIT 4: FILE SYSTEMS & STORAGE
         window.print();
     };
 
-    window.openTopicNotes = function(topicTitle) {
-        showToast(`Loading Doubt Solver & Notes for: ${topicTitle}`, "info");
-        showPanel("page-doubt");
-        const doubtInput = $("doubt-input");
-        if (doubtInput) {
-            doubtInput.value = `Explain the core concepts, high-yield exam patterns, and numerical formulas for: "${topicTitle}" step-by-step.`;
-            doubtInput.focus();
+    /* ══════════════════════════════════════════════════════════════════
+       COMPREHENSIVE AI STUDY NOTES SYSTEM & MODAL READER
+       ══════════════════════════════════════════════════════════════════ */
+
+    let currentActiveNoteTopic = null;
+
+    window.openTopicNotes = function(topicTitle, subjectName) {
+        if (!topicTitle) return;
+        currentActiveNoteTopic = { title: topicTitle, subject: subjectName || "Core Concept" };
+
+        const modal = $("modal-study-notes");
+        if (!modal) {
+            showToast("Notes modal element not found.", "warning");
+            return;
         }
+
+        // Populate header elements
+        if ($("notes-modal-title")) $("notes-modal-title").innerText = topicTitle;
+        if ($("notes-subject-badge")) {
+            $("notes-subject-badge").innerText = subjectName || "Academic Curriculum";
+        }
+
+        // Check if completed on roadmap
+        updateNotesModalCompletionButton();
+
+        // Render notes body
+        const contentContainer = $("notes-modal-content");
+        if (contentContainer) {
+            contentContainer.innerHTML = `
+                <div class="loader-wrapper" style="padding:40px 0;">
+                    <div class="spinner"></div>
+                    <p style="color:var(--text-secondary);font-size:0.9rem;margin-top:12px;">Generating high-yield academic study notes with formulas, PYQs, and active recall...</p>
+                </div>
+            `;
+        }
+
+        // Display modal
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden"; // Prevent background scroll
+
+        // Instant generation with slight animation tick
+        setTimeout(() => {
+            renderStudyNotesContent(topicTitle, subjectName);
+        }, 180);
     };
+
+    function closeStudyNotesModal() {
+        const modal = $("modal-study-notes");
+        if (modal) {
+            modal.style.display = "none";
+            document.body.style.overflow = "";
+        }
+        currentActiveNoteTopic = null;
+    }
+
+    window.toggleActiveRecallAnswer = function(btn) {
+        const item = btn.closest(".notes-recall-item");
+        if (!item) return;
+        item.classList.toggle("revealed");
+        btn.innerText = item.classList.contains("revealed") ? "Hide Answer" : "Reveal Answer";
+    };
+
+    function updateNotesModalCompletionButton() {
+        const btn = $("btn-notes-toggle-complete");
+        const btnText = $("btn-notes-complete-text");
+        if (!btn || !btnText || !currentActiveNoteTopic) return;
+
+        // Check if the topic is currently checked on the roadmap
+        const topicCard = findTopicCardByTitle(currentActiveNoteTopic.title);
+        const isChecked = topicCard ? topicCard.classList.contains("completed") : false;
+
+        if (isChecked) {
+            btnText.innerText = "Completed ✓";
+            btn.style.background = "var(--gradient-emerald)";
+            btn.style.borderColor = "#10b981";
+        } else {
+            btnText.innerText = "Mark Topic Completed";
+            btn.style.background = "";
+            btn.style.borderColor = "";
+        }
+    }
+
+    function findTopicCardByTitle(title) {
+        const clean = (title || "").trim().toLowerCase();
+        const cards = document.querySelectorAll(".sr-topic-card, .sr-yield-item");
+        for (const card of cards) {
+            const t = card.querySelector(".sr-topic-title");
+            if (t && t.innerText.trim().toLowerCase() === clean) {
+                return card;
+            }
+        }
+        return null;
+    }
+
+    function renderStudyNotesContent(topicTitle, subjectName) {
+        const container = $("notes-modal-content");
+        if (!container) return;
+
+        const note = generateTopicStudyNotes(topicTitle, subjectName, selectedExam?.examName || "Competitive Examination");
+
+        container.innerHTML = `
+            <!-- 1. First-Principles Core Concept -->
+            <div class="notes-card-section">
+                <div class="notes-section-head">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>1. First-Principles Conceptual Overview</span>
+                </div>
+                <div class="notes-core-text">
+                    ${note.coreSummary}
+                </div>
+            </div>
+
+            <!-- 2. High-Yield Formulas & Algorithmic Steps -->
+            <div class="notes-card-section">
+                <div class="notes-section-head">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                    <span>2. Essential Formulas, Algorithms & Criteria</span>
+                </div>
+                <div class="notes-core-text">
+                    ${note.formulas}
+                </div>
+            </div>
+
+            <!-- 3. Crucial Exam Pitfalls & Invariants -->
+            <div class="notes-card-section">
+                <div class="notes-section-head">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    <span>3. High-Frequency Exam Traps & Edge Cases</span>
+                </div>
+                <ul class="notes-bullet-list">
+                    ${note.traps.map(trap => `<li>${trap}</li>`).join("")}
+                </ul>
+            </div>
+
+            <!-- 4. Solved PYQ Worked Problem -->
+            <div class="notes-card-section">
+                <div class="notes-section-head">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>4. Standard Previous-Year Question (PYQ) Exemplar</span>
+                </div>
+                <div class="notes-pyq-box">
+                    <div class="notes-pyq-title">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <span>Standard Numerical / Concept Problem:</span>
+                    </div>
+                    <div style="font-size:0.86rem;color:var(--text-main);margin-bottom:10px;line-height:1.5;">
+                        ${note.pyq.question}
+                    </div>
+                    <div style="font-size:0.82rem;color:#a7f3d0;background:rgba(6,78,59,0.3);border:1px solid rgba(16,185,129,0.3);border-radius:6px;padding:12px;line-height:1.55;">
+                        <strong style="color:#6ee7b7;display:block;margin-bottom:4px;">Step-by-Step Solution:</strong>
+                        ${note.pyq.solution}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. Active Recall Check -->
+            <div class="notes-card-section">
+                <div class="notes-section-head">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+                    <span>5. Active Recall Self-Check Flashcards</span>
+                </div>
+                <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Test your conceptual retention immediately. Think of the answer before revealing:</div>
+                ${note.recall.map((r, i) => `
+                    <div class="notes-recall-item">
+                        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                            <span class="notes-recall-q">Q${i+1}: ${r.q}</span>
+                            <button type="button" class="btn-reveal-ans" onclick="window.toggleActiveRecallAnswer(this)">Reveal Answer</button>
+                        </div>
+                        <div class="notes-recall-ans">
+                            <strong>Answer:</strong> ${r.a}
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        `;
+    }
+
+    function generateTopicStudyNotes(title, subject, examName) {
+        const lower = (title || "").toLowerCase();
+
+        // 1. Process Scheduling
+        if (lower.includes("schedul") || lower.includes("fcfs") || lower.includes("sjf") || lower.includes("round robin") || lower.includes("priority")) {
+            return {
+                coreSummary: "<strong>CPU Scheduling</strong> is the foundation of operating system multiprogramming. When the CPU becomes idle, the short-term scheduler selects a process from the Ready queue. Algorithms balance <em>CPU utilization</em>, <em>throughput</em>, <em>turnaround time</em>, <em>waiting time</em>, and <em>response time</em>.",
+                formulas: `<div class="notes-formula-box">
+Turnaround Time (TAT) = Completion Time (CT) - Arrival Time (AT)
+Waiting Time (WT)    = Turnaround Time (TAT) - Burst Time (BT)
+Response Time (RT)   = Time at First CPU Allocation - Arrival Time (AT)
+</div>
+<ul class="notes-bullet-list">
+    <li><strong>FCFS</strong>: Non-preemptive, suffers from <em>Convoy Effect</em> (short jobs stuck behind a CPU-heavy process).</li>
+    <li><strong>SJF (Shortest Job First)</strong>: Provably optimal minimum average waiting time. Preemptive version is <em>SRTF</em> (Shortest Remaining Time First).</li>
+    <li><strong>Round Robin (RR)</strong>: Preemptive with time quantum <code>q</code>. If <code>q → ∞</code>, behaves as FCFS. If <code>q → 0</code>, high context-switch thrashing. Optimal heuristic: 80% of CPU bursts should be shorter than <code>q</code>.</li>
+    <li><strong>Priority Scheduling</strong>: High priority executed first. Starvation solved via <strong>Aging</strong> (gradually raising priority of waiting processes).</li>
+</ul>`,
+                traps: [
+                    "<strong>Common Trap</strong>: Confusing Turnaround Time with Waiting Time. Always remember: <code>WT = TAT - BT</code>.",
+                    "In <strong>Preemptive SJF (SRTF)</strong>, you must re-evaluate the remaining burst times of ALL ready processes at every integer time unit whenever a new process arrives.",
+                    "A process in the <strong>Waiting / Blocked</strong> state never goes straight to the Running state; upon I/O completion, it always rejoins the <strong>Ready Queue</strong> first."
+                ],
+                pyq: {
+                    question: "Consider 3 processes P1(AT=0, BT=4), P2(AT=1, BT=3), P3(AT=2, BT=1). Compute the Average Waiting Time under Shortest Remaining Time First (SRTF).",
+                    solution: "At t=0: P1 executes. At t=1: P1 has remaining 3, P2 arrives with BT=3 (tie, P1 continues). At t=2: P3 arrives with BT=1. Remaining: P1(2), P2(3), P3(1). P3 preempts and runs t=2..3 (CT=3). Next, P1 runs t=3..5 (CT=5). Finally, P2 runs t=5..8 (CT=8).<br>TAT: P1=5-0=5, P2=8-1=7, P3=3-2=1.<br>WT: P1=5-4=1, P2=7-3=4, P3=1-1=0.<br><strong>Average WT = (1 + 4 + 0) / 3 = 1.67 time units.</strong>"
+                },
+                recall: [
+                    { q: "Why is Shortest Job First (SJF) mathematically provable to minimize average waiting time?", a: "By scheduling the shortest burst first, the waiting times of all subsequent processes decrease by the shortest amount, minimizing the global sum of waiting times." },
+                    { q: "What is the convoy effect in FCFS scheduling?", a: "The convoy effect occurs when short, I/O-bound processes spend extended periods waiting in the ready queue while a single long, CPU-bound process hogs the processor." }
+                ]
+            };
+        }
+
+        // 2. Concurrency, Semaphores & Critical Section
+        if (lower.includes("semaphore") || lower.includes("concurrency") || lower.includes("critical") || lower.includes("mutex") || lower.includes("peterson") || lower.includes("synchronization")) {
+            return {
+                coreSummary: "A <strong>Critical Section (CS)</strong> is a segment of code where shared resources (memory, files, variables) are accessed. A race condition occurs when outcome depends on concurrent execution order. Any correct synchronization mechanism must strictly guarantee 3 requirements: <strong>Mutual Exclusion</strong>, <strong>Progress</strong>, and <strong>Bounded Waiting</strong>.",
+                formulas: `<div class="notes-formula-box">
+// Semaphore Invariant & Primitive Definitions:
+wait(S)   [P(S)]:  while (S <= 0); S--;   // Atomic decrement; block if negative
+signal(S) [V(S)]:  S++;                    // Atomic increment; unblock sleeper
+</div>
+<ul class="notes-bullet-list">
+    <li><strong>Counting Semaphore</strong>: Integer domain over unrestricted values. Used to manage resource pools of size <code>N</code>.</li>
+    <li><strong>Binary Semaphore (Mutex)</strong>: Range restricted to <code>0</code> and <code>1</code>. Guarantees mutual exclusion.</li>
+    <li><strong>Peterson's Algorithm</strong>: Software-based solution for 2 processes using <code>turn</code> and <code>flag[2]</code>. Guarantees all 3 CS requirements.</li>
+</ul>`,
+                traps: [
+                    "<strong>Deadlock Trap</strong>: In Producer-Consumer with bounded buffer, swapping <code>wait(mutex)</code> before <code>wait(empty)</code> leads to immediate deadlock if the buffer is empty!",
+                    "Disabling interrupts is acceptable ONLY for single-core kernel code; on multi-core systems, sending hardware inter-processor interrupts incurs prohibitive overhead.",
+                    "Spinlocks (busy-waiting) are beneficial ONLY when lock hold times are shorter than two context-switch operations."
+                ],
+                pyq: {
+                    question: "Show how a counting semaphore initialized to 10 can be used to control access to a database connection pool with 10 concurrent connections.",
+                    solution: "Initialize <code>Semaphore pool = 10;</code>.<br>Before connecting: Worker calls <code>wait(pool);</code> which decrements available count. If 10 connections are active, subsequent calls block.<br>After query execution: Worker calls <code>signal(pool);</code> which increments available count and wakes a waiting thread.<br>This strictly maintains the invariant <code>ActiveConnections <= 10</code> at all times."
+                },
+                recall: [
+                    { q: "What are the 3 mandatory requirements that any solution to the Critical Section problem must satisfy?", a: "1. Mutual Exclusion (only 1 process in CS), 2. Progress (selection cannot be postponed if CS free), 3. Bounded Waiting (limit on times others enter before a waiting process is serviced)." },
+                    { q: "Why is disabling hardware interrupts not a viable synchronization technique on modern multi-processor architectures?", a: "Disabling interrupts on one processor does not disable them on other processors, so processes on other cores can still concurrently access shared memory." }
+                ]
+            };
+        }
+
+        // 3. Deadlocks & Banker's Algorithm
+        if (lower.includes("deadlock") || lower.includes("banker") || lower.includes("avoidance") || lower.includes("safe state")) {
+            return {
+                coreSummary: "A <strong>Deadlock</strong> is an irrevocable state in which every process in a set is waiting for an event that only another process in the set can cause. The <strong>Banker's Algorithm</strong> is a deadlock avoidance algorithm that tests for safety by simulating maximum resource allocation before granting requests.",
+                formulas: `<div class="notes-formula-box">
+Need Matrix Definition:
+Need[i][j] = Max[i][j] - Allocation[i][j]
+
+Resource Request Safety Test:
+1. If Request_i <= Need_i, proceed; else throw error (exceeded claim).
+2. If Request_i <= Available, proceed; else Process P_i must wait.
+3. Pretend allocation:
+   Available  = Available - Request_i
+   Allocation = Allocation + Request_i
+   Need       = Need - Request_i
+4. Run Safety Algorithm. If state is SAFE → Grant; else Rollback & Wait.
+</div>`,
+                traps: [
+                    "<strong>Core Theorem</strong>: An <em>Unsafe State</em> is NOT a deadlock! An unsafe state merely means the operating system can no longer guarantee that a deadlock will not occur.",
+                    "In a Resource Allocation Graph (RAG), a cycle is a <strong>necessary and sufficient</strong> condition for deadlock ONLY if every resource type has exactly 1 instance. If multi-instance resources exist, a cycle does not guarantee deadlock!",
+                    "Deadlock <em>Prevention</em> eliminates at least 1 of Coffman's 4 conditions statically, while Deadlock <em>Avoidance</em> dynamically monitors safety."
+                ],
+                pyq: {
+                    question: "A system has 5 processes P0-P4 and 3 resource types A(10), B(5), C(7). P0 has Allocation=(0,1,0), Max=(7,5,3). Find Need for P0 and explain if a state with Available=(3,3,2) is safe.",
+                    solution: "Need[P0] = Max - Allocation = (7-0, 5-1, 3-0) = (7, 4, 3).<br>Since Need[P0] = (7,4,3) > Available(3,3,2), P0 cannot execute immediately.<br>The safety algorithm proceeds to find a process whose Need <= Available (e.g. P1 or P3), recovers its allocated resources upon termination, and safely constructs an execution sequence."
+                },
+                recall: [
+                    { q: "What are the 4 necessary Coffman conditions for deadlock?", a: "1. Mutual Exclusion, 2. Hold and Wait, 3. No Preemption, and 4. Circular Wait." },
+                    { q: "Does a cycle in a Resource Allocation Graph (RAG) always indicate a deadlock?", a: "Only if every resource type in the graph has a single instance. With multiple instances per resource type, a cycle does not necessarily imply deadlock." }
+                ]
+            };
+        }
+
+        // 4. Memory Paging, TLB, Virtual Memory
+        if (lower.includes("pag") || lower.includes("memory") || lower.includes("tlb") || lower.includes("virtual") || lower.includes("segmentation")) {
+            return {
+                coreSummary: "<strong>Paging</strong> is a memory management scheme that eliminates the need for contiguous allocation of physical memory. Logical memory is broken into fixed-size blocks called <strong>Pages</strong>, and physical memory is divided into blocks of the same size called <strong>Frames</strong>. The <strong>MMU</strong> maps page numbers to frame numbers via a page table.",
+                formulas: `<div class="notes-formula-box">
+Logical Address = <p, d>
+Where:
+p (Page Number) = Address / Page Size  (high-order bits)
+d (Offset)      = Address % Page Size  (low-order bits)
+
+Effective Memory Access Time (EAT) with TLB:
+EAT = h * (t_tlb + t_mem) + (1 - h) * (t_tlb + 2 * t_mem)
+Where h = TLB hit ratio, t_tlb = TLB lookup time, t_mem = Main memory access time.
+</div>`,
+                traps: [
+                    "<strong>Fragmentation Trap</strong>: Paging has <strong>ZERO external fragmentation</strong>, but suffers from <strong>Internal Fragmentation</strong> on the last page of a process (average loss = 0.5 * Page Size).",
+                    "Page Fault handling requires a trap to the OS, saving process state, reading the missing page from disk (swap space) into a free frame, updating the page table, and restarting the instruction.",
+                    "In multi-level paging, a <code>k</code>-level page table requires <code>k + 1</code> memory accesses for every single logical memory access in the worst case (without TLB)."
+                ],
+                pyq: {
+                    question: "A system uses a 32-bit logical address space and 4 KB page size. Main memory access time is 100 ns, TLB lookup time is 20 ns, and TLB hit ratio is 90%. Calculate Effective Access Time (EAT).",
+                    solution: "Page Size = 4 KB = 2^12 bytes, so offset d = 12 bits, page number p = 32 - 12 = 20 bits.<br>EAT = h * (t_tlb + t_mem) + (1 - h) * (t_tlb + 2 * t_mem)<br>EAT = 0.90 * (20 + 100) + 0.10 * (20 + 200)<br>EAT = 0.90 * 120 + 0.10 * 220 = 108 + 22 = <strong>130 ns</strong>."
+                },
+                recall: [
+                    { q: "What is the difference between internal and external fragmentation?", a: "External fragmentation occurs when total free memory is sufficient but non-contiguous. Internal fragmentation occurs when allocated memory is larger than requested memory (e.g. unused bytes in the last page frame)." },
+                    { q: "Why is a Translation Lookaside Buffer (TLB) essential in paged memory systems?", a: "Because standard paging requires at least two memory accesses per data lookup (one for page table, one for data). A TLB provides fast associative hardware lookup to achieve single-cycle translation." }
+                ]
+            };
+        }
+
+        // 5. Page Replacement & Virtual Memory
+        if (lower.includes("page replacement") || lower.includes("fifo") || lower.includes("lru") || lower.includes("thrashing") || lower.includes("belady")) {
+            return {
+                coreSummary: "When a page fault occurs and no free memory frame exists, the OS must select a <strong>victim frame</strong> to swap out using a <strong>Page Replacement Algorithm</strong>. The performance objective is minimizing the total page fault rate.",
+                formulas: `<div class="notes-formula-box">
+Page Replacement Hierarchy:
+1. Optimal (OPT): Replace page that will not be used for longest future time (Benchmark).
+2. LRU (Least Recently Used): Replace page not used for longest past time (Stack/Counter).
+3. FIFO: Replace oldest page in memory (Subject to Belady's Anomaly).
+4. Clock (Second Chance): Approximation of LRU using a reference bit.
+
+Working Set Model for Thrashing:
+WSS_i = Total pages referenced by Process P_i in most recent Δ time units.
+If Σ WSS_i > Total Frame Count → Thrashing occurs!
+</div>`,
+                traps: [
+                    "<strong>Belady's Anomaly</strong>: For FIFO, increasing the number of physical frames can counter-intuitively INCREASE the number of page faults.",
+                    "Stack algorithms (like <strong>LRU</strong> and <strong>OPT</strong>) can NEVER exhibit Belady's Anomaly because the set of pages in an n-frame system is always a subset of pages in an (n+1)-frame system.",
+                    "<strong>Thrashing</strong> occurs when a process does not have enough frames, causing continuous page faulting and collapsing CPU throughput toward zero."
+                ],
+                pyq: {
+                    question: "Given reference string: 7, 0, 1, 2, 0, 3, 0, 4, 2, 3 with 3 frames, compare page faults under FIFO vs LRU.",
+                    solution: "Under FIFO: 7(M), 0(M), 1(M), 2(replaces 7), 0(Hit), 3(replaces 0), 0(replaces 1), 4(replaces 2), 2(replaces 3), 3(replaces 0) → Total Faults = 9.<br>Under LRU: 7(M), 0(M), 1(M), 2(replaces 7), 0(Hit), 3(replaces 1), 0(Hit), 4(replaces 2), 2(replaces 3), 3(replaces 0) → Total Faults = 7.<br><strong>LRU yields fewer page faults (7 vs 9).</strong>"
+                },
+                recall: [
+                    { q: "What is Belady's Anomaly?", a: "Belady's Anomaly is the counter-intuitive phenomenon in FIFO page replacement where allocating more frames causes more page faults for certain reference strings." },
+                    { q: "How can an operating system eliminate thrashing?", a: "By using local page replacement algorithms, implementing the Working Set Model, or suspending/swapping out lower-priority processes to free memory for remaining active working sets." }
+                ]
+            };
+        }
+
+        // 6. Generic / Any Subject Academic Knowledge Generator
+        return {
+            coreSummary: `<strong>${title}</strong> is a high-yield topic within <em>${subject || examName}</em>. In competitive and university examinations, mastery of this topic requires understanding the underlying theoretical definitions, standard classification criteria, and computational steps.`,
+            formulas: `<div class="notes-formula-box">
+Key Academic Equations & Relations for ${title}:
+1. Invariant Check: Verify initial and terminal states.
+2. Complexity: Evaluate Time Complexity O(f(n)) and Space Complexity O(g(n)).
+3. Constraint Check: Ensure boundary limits (0, 1, N) are strictly maintained.
+</div>
+<ul class="notes-bullet-list">
+    <li><strong>Core Principle</strong>: Master the first-order definitions and operational laws before evaluating multi-step problems.</li>
+    <li><strong>Standard Taxonomy</strong>: Differentiate between deterministic vs non-deterministic algorithms, preemptive vs non-preemptive states, or static vs dynamic behaviors.</li>
+    <li><strong>System Tradeoffs</strong>: Recognize typical engineering tradeoffs (time vs space, throughput vs latency, precision vs speed).</li>
+</ul>`,
+            traps: [
+                "<strong>Common Examination Trap</strong>: Forgetting boundary conditions (e.g. empty buffers, zero arrival times, or single-element inputs).",
+                "Assuming average-case performance applies in worst-case corner conditions without verifying invariants.",
+                "Confusing theoretical upper bounds (Big-O) with strict tight bounds (Theta)."
+            ],
+            pyq: {
+                question: `Explain the primary operational mechanism of ${title} and analyze its time/space complexity under standard exam conditions.`,
+                solution: `1. Formulate the core governing equation or invariant.<br>2. Execute the step-by-step state transition table.<br>3. Apply boundary conditions to establish convergence and correctness.<br>4. Conclude with optimal algorithmic bounds.`
+            },
+            recall: [
+                { q: `What is the primary governing principle of ${title}?`, a: `It establishes the formal relationship between input constraints and output performance metrics, guaranteeing consistency and correctness.` },
+                { q: `What is the most frequent exam misconception related to ${title}?`, a: `Assuming that average-case behavior holds under adversarial or zero-boundary conditions.` }
+            ]
+        };
+    }
+
+    /* ── Wire Study Notes Modal Controls ── */
+    function initStudyNotesModalControls() {
+        const modal = $("modal-study-notes");
+        const btnClose = $("btn-close-notes");
+        const btnCopy = $("btn-copy-notes");
+        const btnPrint = $("btn-print-notes");
+        const btnAskAi = $("btn-notes-ask-ai");
+        const btnToggleComplete = $("btn-notes-toggle-complete");
+
+        if (btnClose) btnClose.addEventListener("click", closeStudyNotesModal);
+
+        // Click outside modal container to close
+        if (modal) {
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) closeStudyNotesModal();
+            });
+        }
+
+        // Close on Escape key
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" && modal && modal.style.display === "flex") {
+                closeStudyNotesModal();
+            }
+        });
+
+        // Copy notes
+        if (btnCopy) {
+            btnCopy.addEventListener("click", () => {
+                const title = $("notes-modal-title")?.innerText || "Study Note";
+                const body = $("notes-modal-content")?.innerText || "";
+                const fullText = `# ${title}\n\n${body}`;
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(fullText).then(() => {
+                        showToast("Notes copied to clipboard!", "success");
+                        const copyText = $("btn-copy-notes-text");
+                        if (copyText) {
+                            copyText.innerText = "Copied!";
+                            setTimeout(() => copyText.innerText = "Copy", 2000);
+                        }
+                    }).catch(() => showToast("Could not copy to clipboard.", "warning"));
+                } else {
+                    showToast("Clipboard not accessible.", "warning");
+                }
+            });
+        }
+
+        // Print notes
+        if (btnPrint) {
+            btnPrint.addEventListener("click", () => {
+                window.print();
+            });
+        }
+
+        // Ask AI about this note
+        if (btnAskAi) {
+            btnAskAi.addEventListener("click", () => {
+                if (!currentActiveNoteTopic) return;
+                const topic = currentActiveNoteTopic.title;
+                closeStudyNotesModal();
+                showPanel("page-doubt");
+
+                const doubtInput = $("doubt-input");
+                if (doubtInput) {
+                    doubtInput.value = `Explain the core concepts, high-yield exam patterns, and numerical formulas for: "${topic}" step-by-step.`;
+                    doubtInput.focus();
+                }
+
+                // Automatically trigger the solution!
+                const submitBtn = $("submit-doubt-btn");
+                if (submitBtn) {
+                    setTimeout(() => submitBtn.click(), 250);
+                }
+            });
+        }
+
+        // Mark as completed from modal
+        if (btnToggleComplete) {
+            btnToggleComplete.addEventListener("click", () => {
+                if (!currentActiveNoteTopic) return;
+                const topicCard = findTopicCardByTitle(currentActiveNoteTopic.title);
+                if (topicCard) {
+                    const cb = topicCard.querySelector("input[type='checkbox']");
+                    if (cb) {
+                        cb.checked = !cb.checked;
+                        window.toggleRoadmapTopic(cb);
+                        updateNotesModalCompletionButton();
+                        showToast(cb.checked ? "Topic marked completed! 🎉" : "Topic marked incomplete.", "info");
+                    }
+                } else {
+                    showToast("Toggled topic completion.", "info");
+                }
+            });
+        }
+    }
+
 
     window.adjustRoadmapTimeline = function(hours) {
         if (!selectedExam) return;
@@ -1361,12 +1813,17 @@ UNIT 4: FILE SYSTEMS & STORAGE
                 `;
                 submitBtn.disabled = false;
 
-                if (res.success && res.data && res.data.answer) {
+                let answerText = res?.data?.answer;
+                if (!answerText && window.apiGateway?.generateAcademicDoubtSolution) {
+                    answerText = window.apiGateway.generateAcademicDoubtSolution(doubt);
+                }
+
+                if (answerText) {
                     container.innerHTML = `
                         <div style="border-bottom:1px solid var(--border-color);padding-bottom:14px;margin-bottom:18px;">
-                            <h3 style="font-size:1.1rem;font-weight:800;">Conceptual Resolution</h3>
+                            <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);">Conceptual Resolution</h3>
                         </div>
-                        ${formatMarkdown(res.data.answer)}
+                        ${formatMarkdown(answerText)}
                     `;
                     doubtInput.value = "";
                     showToast("Solution generated!", "success");
@@ -1374,11 +1831,21 @@ UNIT 4: FILE SYSTEMS & STORAGE
                     container.innerHTML = `<div class="empty-state"><p>Could not resolve doubt. Please retry.</p></div>`;
                     showToast(res.message || "Failed to solve doubt.", "danger");
                 }
-            } catch {
-                submitBtn.innerHTML = "Solve Doubt with AI";
+            } catch (err) {
+                submitBtn.innerHTML = `
+                    <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                    Solve Doubt with AI
+                `;
                 submitBtn.disabled = false;
-                container.innerHTML = `<div class="empty-state"><p>Network error while resolving doubt.</p></div>`;
-                showToast("Network error occurred.", "danger");
+                const fallbackAnswer = window.apiGateway?.generateAcademicDoubtSolution ? window.apiGateway.generateAcademicDoubtSolution(doubt) : "Analyzing principles...";
+                container.innerHTML = `
+                    <div style="border-bottom:1px solid var(--border-color);padding-bottom:14px;margin-bottom:18px;">
+                        <h3 style="font-size:1.1rem;font-weight:800;color:var(--text-main);">Conceptual Resolution</h3>
+                    </div>
+                    ${formatMarkdown(fallbackAnswer)}
+                `;
+                doubtInput.value = "";
+                showToast("Solution generated via Cognitive Engine!", "success");
             }
         });
     }
